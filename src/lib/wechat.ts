@@ -10,19 +10,11 @@
  * to a safe no-op, so the same site also works as a plain web page.
  */
 
+import type { WxMiniProgram } from "@/types";
+
 // Current stable WeChat JS-SDK. (The Mini Program web-view only needs jweixin for
 // the `wx.miniProgram` bridge; JSSDK signature config is not required for it.)
 const JWEIXIN_SRC = "https://res.wx.qq.com/open/js/jweixin-1.6.0.js";
-
-type WxMiniProgram = {
-  navigateTo: (opts: { url: string }) => void;
-  navigateBack: (opts?: { delta?: number }) => void;
-  switchTab: (opts: { url: string }) => void;
-  reLaunch: (opts: { url: string }) => void;
-  redirectTo: (opts: { url: string }) => void;
-  postMessage: (opts: { data: unknown }) => void;
-  getEnv: (cb: (res: { miniprogram: boolean }) => void) => void;
-};
 
 declare global {
   interface Window {

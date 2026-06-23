@@ -18,5 +18,25 @@
     "title": "出错了",
     "description": "页面加载出现问题，请重试。",
     "retry": "重试"
+  },
+  "Plans": {
+    "title": "保险产品",
+    "searchPlaceholder": "搜索保险产品",
+    "filter": "筛选",
+    "chooseCompany": "选择保险公司",
+    "back": "返回",
+    "tabSavings": "储蓄",
+    "tabDividend": "派息",
+    "tabCi": "危疾",
+    "tabLife": "人寿",
+    "tabIndexLinked": "指数相连",
+    "tabAnnuity": "年金",
+    "loading": "加载中…",
+    "empty": "暂无产品",
+    "error": "加载产品失败"
+  },
+  "Unauthorized": {
+    "title": "需要登录",
+    "description": "请从微信小程序打开此页面以继续。"
   }
 }

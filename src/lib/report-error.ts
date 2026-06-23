@@ -1,6 +1,5 @@
 import { env } from "@/lib/env";
-
-type ErrorContext = Record<string, unknown>;
+import type { ErrorContext } from "@/types";
 
 /**
  * Central error sink. Logs to console always, and POSTs to

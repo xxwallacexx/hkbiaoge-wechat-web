@@ -4,8 +4,9 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 
 import { ErrorReporter } from "@/components/error-reporter";
-import { routing, type Locale } from "@/i18n/routing";
+import { routing } from "@/i18n/routing";
 import { QueryProvider } from "@/providers/query-provider";
+import type { Locale } from "@/types";
 
 import "../globals.css";
 

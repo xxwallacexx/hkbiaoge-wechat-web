@@ -18,5 +18,25 @@
     "title": "發生錯誤",
     "description": "頁面載入時出現問題，請重試。",
     "retry": "重試"
+  },
+  "Plans": {
+    "title": "保險產品",
+    "searchPlaceholder": "搜尋保險產品",
+    "filter": "篩選",
+    "chooseCompany": "選擇保險公司",
+    "back": "返回",
+    "tabSavings": "儲蓄",
+    "tabDividend": "派息",
+    "tabCi": "危疾",
+    "tabLife": "人壽",
+    "tabIndexLinked": "指數相連",
+    "tabAnnuity": "年金",
+    "loading": "載入中…",
+    "empty": "暫無產品",
+    "error": "載入產品失敗"
+  },
+  "Unauthorized": {
+    "title": "需要登入",
+    "description": "請從微信小程序開啟此頁面以繼續。"
   }
 }

@@ -7,14 +7,7 @@
  * cookies, so we never rely on the browser to auto-send the cookie to the API.
  */
 
-type SameSite = "Lax" | "Strict" | "None";
-
-type CookieOptions = {
-  maxAgeSeconds?: number;
-  path?: string;
-  sameSite?: SameSite;
-  secure?: boolean;
-};
+import type { CookieOptions } from "@/types";
 
 export function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
