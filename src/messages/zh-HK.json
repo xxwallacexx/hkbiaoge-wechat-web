@@ -1,0 +1,22 @@
+{
+  "App": {
+    "title": "保險計劃",
+    "subtitle": "嵌入微信小程序的網頁示例",
+    "envMiniProgram": "執行環境：微信小程序 web-view",
+    "envBrowser": "執行環境：普通瀏覽器 / H5",
+    "envChecking": "正在偵測執行環境…",
+    "authed": "已登入（已用一次性 code 換取權杖）",
+    "notAuthed": "未登入（請從小程序開啟）",
+    "authError": "登入失敗，請從小程序重新開啟",
+    "loading": "載入中…",
+    "back": "返回小程序",
+    "ping": "測試介面呼叫",
+    "pingOk": "介面回應成功",
+    "pingFail": "介面呼叫失敗（開發環境沒有後端時屬正常）"
+  },
+  "Error": {
+    "title": "發生錯誤",
+    "description": "頁面載入時出現問題，請重試。",
+    "retry": "重試"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "App": {
+    "title": "Insurance Plans",
+    "subtitle": "Sample site embedded in a WeChat Mini Program",
+    "envMiniProgram": "Environment: WeChat Mini Program web-view",
+    "envBrowser": "Environment: regular browser / H5",
+    "envChecking": "Detecting environment…",
+    "authed": "Signed in (one-time code exchanged for token)",
+    "notAuthed": "Not signed in (open from the Mini Program)",
+    "authError": "Sign-in failed — please reopen from the Mini Program",
+    "loading": "Loading…",
+    "back": "Back to Mini Program",
+    "ping": "Test API call",
+    "pingOk": "API responded OK",
+    "pingFail": "API call failed (expected with no backend in dev)"
+  },
+  "Error": {
+    "title": "Something went wrong",
+    "description": "There was a problem loading this page. Please try again.",
+    "retry": "Try again"
+  }
+}

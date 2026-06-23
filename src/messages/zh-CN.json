@@ -1,0 +1,22 @@
+{
+  "App": {
+    "title": "保险计划",
+    "subtitle": "嵌入微信小程序的网页示例",
+    "envMiniProgram": "运行环境：微信小程序 web-view",
+    "envBrowser": "运行环境：普通浏览器 / H5",
+    "envChecking": "正在检测运行环境…",
+    "authed": "已登录（已用一次性 code 换取令牌）",
+    "notAuthed": "未登录（请从小程序打开）",
+    "authError": "登录失败，请从小程序重新打开",
+    "loading": "加载中…",
+    "back": "返回小程序",
+    "ping": "测试接口调用",
+    "pingOk": "接口返回成功",
+    "pingFail": "接口调用失败（开发环境无后端时属正常）"
+  },
+  "Error": {
+    "title": "出错了",
+    "description": "页面加载出现问题，请重试。",
+    "retry": "重试"
+  }
+}
