@@ -25,27 +25,33 @@ Locales: `/zh-CN` (default, Simplified), `/zh-HK` (Traditional), `/en`.
 
 ## How embedding works
 
-The Mini Program embeds a URL like:
+The Mini Program mints a short-lived, single-use **code** on our API
+(`PUT /loginCode/auth`) and embeds a URL like:
 
 ```html
-<web-view src="https://YOUR-DOMAIN/zh-CN?token=THE_JWT" />
+<web-view src="https://YOUR-DOMAIN/zh-CN?code=ONE_TIME_CODE" />
 ```
 
-- `?token=` is captured on load into a first-party **cookie** (`wv_token`) and
-  stripped from the URL (`src/lib/auth.ts`). The token is then sent to the API as
-  an `Authorization: Bearer` header (`src/lib/api.ts`) — this works cross-origin
-  to the API and inside the web-view (which blocks cross-site cookies).
-- The token comes **only** from the Mini Program via the web-view URL — there's no
-  in-app login. A 401 from the API clears the token; the user re-opens the web-view
-  to get a fresh one. No WeChat-native login/pay is used, so none of the web-view
-  native-API limits bite.
+- `?code=` is read on load and traded for the JWT via `POST /loginCode/exchange`
+  (`src/lib/auth.ts`); the token is stored in a first-party **cookie** (`wv_token`)
+  and the code is stripped from the URL. The JWT is then sent to the API as an
+  `Authorization: Bearer` header (`src/lib/api.ts`) — this works cross-origin to
+  the API and inside the web-view (which blocks cross-site cookies).
+- **Why a code, not the raw token:** the web-view URL leaks (into history, the H5
+  server's logs, and the first outbound `Referer`). The code is single-use and
+  short-lived server-side, so a leaked code is worthless once redeemed, and the JWT
+  only ever travels in the exchange response body.
+- The code comes **only** from the Mini Program via the web-view URL — there's no
+  in-app login. A used/expired code or a 401 leaves the app unauthenticated; the
+  user re-opens the web-view to get a fresh code. No WeChat-native login/pay is
+  used, so none of the web-view native-API limits bite.
 - `src/lib/wechat.ts` loads `jweixin` and exposes the `wx.miniProgram.*` bridge
   (`navigateBack`, `navigateTo`, `postMessage`, …) — all safe no-ops outside the
   Mini Program, so the same site also works as a plain browser page.
 
 ### Contract to agree with the client
 
-- **Embed URL + params:** `/{locale}?token=...&route=...`
+- **Embed URL + params:** `/{locale}?code=...&route=...`
 - **Verify file:** you serve the WeChat domain-verification `.txt` at the site
   root; the client registers + whitelists the domain.
 
