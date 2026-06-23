@@ -3,6 +3,9 @@
 import { ChevronLeft, Info, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { ExpiredCard } from "@/components/expired-card";
+import { PlanIntroCard } from "@/components/plan-intro-card";
+import { PlanPremiumCard } from "@/components/plan-premium-card";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import {
   Dialog,
@@ -13,9 +16,6 @@ import {
 } from "@/components/ui/dialog";
 import { useSavingPlanParam } from "@/hooks/use-saving-plan-param";
 
-import { ExpiredCard } from "./expired-card";
-import { PlanIntroCard } from "./plan-intro-card";
-import { PlanPremiumCard } from "./plan-premium-card";
 import { SavingPlanParamForm } from "./saving-plan-param-form";
 
 /**
@@ -67,7 +67,7 @@ export function SavingPlanParamScreen() {
   }
 
   if (isExpired || !planDetail || !planParam) {
-    return <ExpiredCard />;
+    return <ExpiredCard message={t("membershipExpired")} />;
   }
 
   return (

@@ -1,14 +1,10 @@
-import type { SavingPlanDetail } from "@/types";
+import type { PlanDetail } from "@/types";
 
 /**
  * Plan-detail header: a colored company badge, the plan title, and a one-line detail.
- * Mirrors the mobile PlanIntroCard.
+ * Mirrors the mobile PlanIntroCard. Shared across plan types.
  */
-export function PlanIntroCard({
-  planDetail,
-}: {
-  planDetail: SavingPlanDetail;
-}) {
+export function PlanIntroCard({ planDetail }: { planDetail: PlanDetail }) {
   const company = planDetail.insuranceCompanyDetail;
   return (
     <div className="flex items-center gap-3 p-2">

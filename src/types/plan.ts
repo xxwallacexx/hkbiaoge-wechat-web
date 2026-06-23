@@ -3,7 +3,7 @@
  * (PLAN_TABS, PAGE_SIZE, …) lives in `@/lib/plans`.
  */
 
-import type { PlanPaymentDetail, PlanSheetDetail } from "./saving-plan";
+import type { PlanPaymentDetail, PlanSheetDetail } from "./plan-detail";
 
 /** Embedded company badge on a plan row / in the filter list. */
 export type InsuranceCompanyDetail = {

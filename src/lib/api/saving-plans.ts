@@ -1,5 +1,5 @@
 /**
- * Saving-plan API calls + the param screen's pure premium predicates.
+ * Saving-plan API calls + the param screen's booster predicate.
  *
  * Unlike the mobile app these take NO token (the axios interceptor in `lib/api/client.ts`
  * attaches the Bearer from the `wv_token` cookie) and they do NOT swallow errors —
@@ -10,24 +10,28 @@
 
 import { api } from "@/lib/api/client";
 import type {
+  PlanCal,
+  PlanCalWithCurrency,
+  PlanDetail,
   SavingPlanBooster,
-  SavingPlanCal,
-  SavingPlanCalWithCurrency,
-  SavingPlanDetail,
   SavingPlanParam,
   SavingPlanPersonalInfo,
 } from "@/types";
 
-export function getSavingPlanDetail(planId: string): Promise<SavingPlanDetail> {
-  return api
-    .get(`/plan/${planId}`)
-    .then((res) => res.data.data as SavingPlanDetail);
+// Shared premium guard, re-exported so saving call sites can import from one place.
+export {
+  isExpectedInstalTooLarge,
+  MAX_EXPECTED_INSTAL,
+} from "@/lib/plan-premium";
+
+export function getSavingPlanDetail(planId: string): Promise<PlanDetail> {
+  return api.get(`/plan/${planId}`).then((res) => res.data.data as PlanDetail);
 }
 
-export function getSavingPlanStatus(planId: string): Promise<SavingPlanDetail> {
+export function getSavingPlanStatus(planId: string): Promise<PlanDetail> {
   return api
     .get(`/plan/${planId}/status`)
-    .then((res) => res.data.data as SavingPlanDetail);
+    .then((res) => res.data.data as PlanDetail);
 }
 
 export function getSavingPlanParam(planId: string): Promise<SavingPlanParam> {
@@ -74,7 +78,7 @@ export async function updateSavingPlanSheetInfo({
   name: string;
   sex: string;
   age: number;
-}): Promise<SavingPlanCalWithCurrency> {
+}): Promise<PlanCalWithCurrency> {
   const res = await api.put(`/sheet/${sheetId}/personalInfo`, {
     name,
     sex,
@@ -83,7 +87,7 @@ export async function updateSavingPlanSheetInfo({
     currency,
   });
   // The API doesn't echo the currency back; re-attach it (mirrors the mobile app).
-  return { ...(res.data.data as SavingPlanCal), currency };
+  return { ...(res.data.data as PlanCal), currency };
 }
 
 export function updateSavingPlanSheetCal({
@@ -92,7 +96,7 @@ export function updateSavingPlanSheetCal({
 }: {
   sheetId: string;
   value: number;
-}): Promise<SavingPlanCal> {
+}): Promise<PlanCal> {
   // The cal endpoint is Axum `Json<i32>`: the body is the raw number, but it must be sent
   // as application/json — axios won't set that content-type for a primitive body, so set
   // it explicitly or the API returns 415.
@@ -100,23 +104,13 @@ export function updateSavingPlanSheetCal({
     .put(`/sheet/${sheetId}/cal`, value, {
       headers: { "Content-Type": "application/json" },
     })
-    .then((res) => res.data.data as SavingPlanCal);
+    .then((res) => res.data.data as PlanCal);
 }
 
-export function adjustSavingPlanSheetCal(
-  sheetId: string,
-): Promise<SavingPlanCal> {
+export function adjustSavingPlanSheetCal(sheetId: string): Promise<PlanCal> {
   return api
     .put(`/sheet/${sheetId}/calAdjust`)
-    .then((res) => res.data.data as SavingPlanCal);
-}
-
-/** The largest premium we'll send to the cal endpoint (mirrors the mobile guard). */
-export const MAX_EXPECTED_INSTAL = 2 ** 32;
-
-/** True when `value` exceeds what the backend will accept. */
-export function isExpectedInstalTooLarge(value: string): boolean {
-  return Number(value) > MAX_EXPECTED_INSTAL;
+    .then((res) => res.data.data as PlanCal);
 }
 
 /**
