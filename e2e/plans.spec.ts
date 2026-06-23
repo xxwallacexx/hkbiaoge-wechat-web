@@ -190,4 +190,24 @@ test.describe("/plans", () => {
     await page.getByRole("button", { name: /Unsynced Plan/ }).click();
     await expect(page).toHaveURL(/\/plans\/sheetSync\?planId=1/);
   });
+
+  test("tapping a ready dividend plan opens its basic-info screen", async ({
+    page,
+  }) => {
+    await authenticate(page);
+    await page.route(/\/api\/plan(\?|$)/, sendData([plan("1", "Savings A")]));
+    const readyCoupon = {
+      ...plan("9", "Dividend Ready"),
+      paymentDetail: paid,
+      sheetDetail: { _id: "sh9", isSynced: true, driveItemId: "drive-9" },
+    };
+    await page.route(/\/api\/couponPlan(\?|$)/, sendData([readyCoupon]));
+    await page.goto("/zh-HK/plans");
+
+    await page.getByRole("button", { name: "派息" }).click();
+    await page.getByRole("button", { name: /Dividend Ready/ }).click();
+    await expect(page).toHaveURL(
+      /\/plans\/coupon\/basicInfo\?planId=9&sheetId=drive-9/,
+    );
+  });
 });

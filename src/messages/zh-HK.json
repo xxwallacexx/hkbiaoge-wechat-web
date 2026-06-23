@@ -73,5 +73,33 @@
     "expectedInstalTooLarge": "期望保費過高，請調整。",
     "paramInputError": "保單參數錯誤",
     "loading": "加載中..."
+  },
+  "CouponPlan": {
+    "inputBasicInfo": "輸入基本資料",
+    "inputPlanParams": "輸入保單參數",
+    "info": "提示",
+    "membershipExpired": "會員已過期...",
+    "back": "返回",
+    "name": "姓名",
+    "age": "年齡",
+    "sex": "性別",
+    "male": "男",
+    "female": "女",
+    "inputName": "輸入姓名",
+    "inputAge": "輸入年齡",
+    "nameRequired": "請輸入姓名",
+    "ageRequired": "請輸入年齡",
+    "numberType": "格式必需為數字",
+    "ageLimit": "投保年齡超過上限 ({maxAge}歲)",
+    "minAgeLimit": "投保年齡最小為 {minAge}歲",
+    "pleaseSelect": "請選擇",
+    "next": "下一步",
+    "period": "年期",
+    "currency": "貨幣",
+    "dividend": "派息",
+    "inputPremium": "輸入投保金額",
+    "paramInputError": "保單參數錯誤",
+    "inputPremiumError": "保費資料錯誤，請調整。",
+    "expectedInstalTooLarge": "期望保費過高，請調整。"
   }
 }

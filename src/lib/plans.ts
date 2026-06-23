@@ -14,7 +14,12 @@ export const PLAN_TABS: readonly PlanTab[] = [
     labelKey: "tabSavings",
     paramPath: "/plans/param",
   },
-  { key: "dividend", endpoint: "/couponPlan", labelKey: "tabDividend" },
+  {
+    key: "dividend",
+    endpoint: "/couponPlan",
+    labelKey: "tabDividend",
+    paramPath: "/plans/coupon/basicInfo",
+  },
   { key: "ci", endpoint: "/ciPlan", labelKey: "tabCi" },
   { key: "life", endpoint: "/wholelifePlan", labelKey: "tabLife" },
   {
