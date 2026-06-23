@@ -84,7 +84,7 @@ async function mockReads(page: Page) {
   );
 }
 
-const URL = "/zh-HK/plans/param?planId=p1&sheetId=s1";
+const URL = "/zh-HK/plans/saving/param?planId=p1&sheetId=s1";
 
 async function fillAndSubmit(page: Page) {
   await page.getByPlaceholder("輸入姓名").fill("Tester");
@@ -92,7 +92,7 @@ async function fillAndSubmit(page: Page) {
   await page.getByRole("button", { name: "下一步" }).click();
 }
 
-test.describe("/plans/param (saving)", () => {
+test.describe("/plans/saving/param (saving)", () => {
   test.beforeEach(async ({ page }) => {
     await authenticate(page);
     await mockReads(page);
@@ -248,9 +248,11 @@ test.describe("/plans/param (saving)", () => {
     await page.getByPlaceholder("輸入期望保費").fill("5000");
     await expect(page.getByText("USD$ 5000")).toBeVisible();
     await page.getByRole("button", { name: "生成報表" }).click();
-    // The /plans/sheet page is a placeholder (not built yet) so it 404s, but the URL —
+    // The /plans/saving/sheet page is a placeholder (not built yet) so it 404s, but the URL —
     // i.e. that generate navigates to the right route with the right params — is asserted.
-    await expect(page).toHaveURL(/\/plans\/sheet\?planId=p1&sheetId=s1/);
+    await expect(page).toHaveURL(
+      /\/plans\/saving\/sheet\?planId=p1&sheetId=s1/,
+    );
   });
 
   test("polls plan status every 3s until the sheet is synced", async ({

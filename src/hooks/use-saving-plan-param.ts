@@ -164,7 +164,10 @@ export function useSavingPlanParam() {
 
   function onGenerateSheetPress() {
     setIsPremiumSheetOpen(false);
-    router.push({ pathname: "/plans/sheet", query: { planId, sheetId } });
+    router.push({
+      pathname: "/plans/saving/sheet",
+      query: { planId, sheetId },
+    });
   }
 
   // Recompute the cal whenever the (debounced) expected installment settles.

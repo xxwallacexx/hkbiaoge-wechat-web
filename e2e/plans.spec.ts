@@ -161,7 +161,9 @@ test.describe("/plans", () => {
     await page.goto("/zh-HK/plans");
 
     await page.getByRole("button", { name: /Ready Plan/ }).click();
-    await expect(page).toHaveURL(/\/plans\/param\?planId=1&sheetId=drive-1/);
+    await expect(page).toHaveURL(
+      /\/plans\/saving\/param\?planId=1&sheetId=drive-1/,
+    );
   });
 
   test("tapping an unpaid plan routes to the payment flow", async ({
