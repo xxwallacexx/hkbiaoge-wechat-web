@@ -1,12 +1,24 @@
 name: E2E
 
-# Runs the Playwright functional smoke tests on every PR, inside the Playwright image
-# (browsers preinstalled). On failure the report + traces are uploaded.
+# Runs the unit (Vitest) and Playwright e2e suites on every PR. The e2e job runs inside
+# the Playwright image (browsers preinstalled); on its failure the report + traces are
+# uploaded.
 
 on:
   pull_request:
 
 jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
   e2e:
     runs-on: ubuntu-latest
     container:
