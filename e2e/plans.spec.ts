@@ -232,4 +232,24 @@ test.describe("/plans", () => {
       /\/plans\/ci\/basicInfo\?planId=8&sheetId=drive-8/,
     );
   });
+
+  test("tapping a ready life plan opens its basic-info screen", async ({
+    page,
+  }) => {
+    await authenticate(page);
+    await page.route(/\/api\/plan(\?|$)/, sendData([plan("1", "Savings A")]));
+    const readyLife = {
+      ...plan("7", "Life Ready"),
+      paymentDetail: paid,
+      sheetDetail: { _id: "sh7", isSynced: true, driveItemId: "drive-7" },
+    };
+    await page.route(/\/api\/wholelifePlan(\?|$)/, sendData([readyLife]));
+    await page.goto("/zh-HK/plans");
+
+    await page.getByRole("button", { name: "人壽" }).click();
+    await page.getByRole("button", { name: /Life Ready/ }).click();
+    await expect(page).toHaveURL(
+      /\/plans\/wholelife\/basicInfo\?planId=7&sheetId=drive-7/,
+    );
+  });
 });

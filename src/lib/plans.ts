@@ -26,7 +26,12 @@ export const PLAN_TABS: readonly PlanTab[] = [
     labelKey: "tabCi",
     paramPath: "/plans/ci/basicInfo",
   },
-  { key: "life", endpoint: "/wholelifePlan", labelKey: "tabLife" },
+  {
+    key: "life",
+    endpoint: "/wholelifePlan",
+    labelKey: "tabLife",
+    paramPath: "/plans/wholelife/basicInfo",
+  },
   {
     key: "indexLinked",
     endpoint: "/unitLinkedPlan",
