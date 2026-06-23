@@ -62,7 +62,8 @@ export function PlansScreen() {
             onClick={() => setFilterOpen(true)}
             className={cn(
               "h-11 shrink-0 gap-1.5",
-              companyId && "ring-2 ring-white ring-offset-2 ring-offset-primary",
+              companyId &&
+                "ring-2 ring-white ring-offset-2 ring-offset-primary",
             )}
           >
             {t("filter")}

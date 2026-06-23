@@ -30,11 +30,13 @@ const sendData = (data: unknown) => (route: Route) =>
     body: JSON.stringify({ data }),
   });
 
-/** Drop a wv_token cookie so the middleware + client treat the page as signed in. */
+/** Drop a wv_token cookie so the proxy + client treat the page as signed in. */
 async function authenticate(page: Page) {
-  await page.context().addCookies([
-    { name: "wv_token", value: "test-jwt", domain: "localhost", path: "/" },
-  ]);
+  await page
+    .context()
+    .addCookies([
+      { name: "wv_token", value: "test-jwt", domain: "localhost", path: "/" },
+    ]);
 }
 
 test.describe("/plans", () => {
@@ -129,7 +131,9 @@ test.describe("/plans", () => {
       const skip = Number(
         new URL(route.request().url()).searchParams.get("skip") ?? "0",
       );
-      return sendData(skip === 0 ? firstPage : [plan("100", "Plan 100")])(route);
+      return sendData(skip === 0 ? firstPage : [plan("100", "Plan 100")])(
+        route,
+      );
     });
     await page.goto("/zh-HK/plans");
     await expect(page.getByText("Plan 0", { exact: true })).toBeVisible();

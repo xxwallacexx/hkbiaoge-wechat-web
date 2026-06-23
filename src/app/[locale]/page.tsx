@@ -2,11 +2,12 @@ import { setRequestLocale } from "next-intl/server";
 
 import { EmbeddedDemo } from "./_components/embedded-demo";
 
-export default function Home({
-  params: { locale },
+export default async function Home({
+  params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
   setRequestLocale(locale);
   return <EmbeddedDemo />;
 }

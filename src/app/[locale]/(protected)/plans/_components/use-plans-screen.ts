@@ -27,8 +27,10 @@ export function usePlansScreen() {
   const [searchInput, setSearchInput] = useState(search);
   const [filterOpen, setFilterOpen] = useState(false);
 
-  // Reflect external URL changes (back/forward) into the input.
+  // Reflect external URL changes (back/forward) into the input. Mirroring an external
+  // system (the URL) into local state is the intended use of this effect.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSearchInput(search);
   }, [search]);
 
