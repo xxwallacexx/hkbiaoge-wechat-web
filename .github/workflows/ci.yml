@@ -1,0 +1,92 @@
+name: CI
+
+# Gates PRs to main (and re-runs after merge) for the wechat-web app:
+#   lint  -> typecheck + eslint
+#   unit  -> Vitest
+#   e2e   -> production build + Playwright browser suite (runs in the Playwright image).
+# Note: the Playwright suite mocks the backend via page.route, so it exercises frontend
+# behavior in a real browser rather than true cross-service end-to-end. On e2e failure the
+# report + traces are uploaded as an artifact.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege: CI only needs to read the repo.
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same ref so rapid pushes don't pile up.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      # Match @playwright/test in package.json (1.61.0).
+      image: mcr.microsoft.com/playwright:v1.61.0-noble
+    env:
+      # Make Playwright use CI defaults and stop reusing a stray dev server (see playwright.config.ts).
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      # setup-node's built-in cache isn't available here (no setup-node in the container job),
+      # so cache the npm download dir and the Next build cache explicitly.
+      - name: Cache npm downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test:e2e
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14

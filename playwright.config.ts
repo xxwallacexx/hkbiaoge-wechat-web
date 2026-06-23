@@ -10,7 +10,7 @@ export default defineConfig({
   webServer: {
     command: "PORT=3100 npm run start",
     url: "http://localhost:3100/zh-CN",
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
 });
