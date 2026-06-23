@@ -1,3 +1,5 @@
+import { fileURLToPath } from "node:url";
+
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
@@ -44,6 +46,12 @@ const securityHeaders = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Pin the workspace root so Turbopack (the default bundler in Next 16) traces files
+  // from this package rather than a parent in the polyglot hkbiaoge repo — this keeps
+  // the `standalone` output self-contained and correct for the Docker image.
+  turbopack: {
+    root: fileURLToPath(new URL(".", import.meta.url)),
+  },
   // Self-contained server bundle for the Docker image (Cloud Run).
   output: "standalone",
   poweredByHeader: false,

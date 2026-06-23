@@ -22,7 +22,7 @@ function localeOf(pathname: string): string {
   return locales.includes(maybeLocale) ? maybeLocale : routing.defaultLocale;
 }
 
-export default function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
   const inner = innerPath(pathname);
   const isProtected = PROTECTED_PATHS.some(

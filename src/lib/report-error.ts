@@ -8,7 +8,6 @@ import type { ErrorContext } from "@/types";
  * Never throws.
  */
 export function captureError(error: unknown, context: ErrorContext = {}): void {
-  // eslint-disable-next-line no-console
   console.error("[captureError]", error, context);
 
   if (typeof window === "undefined") return;
