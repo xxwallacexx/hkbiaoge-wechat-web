@@ -57,20 +57,21 @@ export type PlanCal = {
 export type PlanCalWithCurrency = PlanCal & { currency: string };
 
 /**
- * Props for the shared premium bottom-sheet card. Booster fields are optional: saving
- * passes them, coupon omits them (no booster) and the card hides the booster UI.
+ * Props for the shared premium bottom-sheet card. Booster + adjust fields are optional:
+ * saving passes booster, coupon/CI omit it; saving + coupon pass adjust, CI omits it (no
+ * adjust). The card hides whatever isn't provided.
  */
 export type PlanPremiumCardProps = {
   expectedInstal: string;
   currency: string;
   amount: string;
   instal: string;
-  isExpectedInstalError: boolean;
   isCalSubmitting: boolean;
   onExpectedInstalChange: (value: string) => void;
-  isAdjustSubmitting: boolean;
-  onAdjustSubmit: () => void;
   onGenerateSheetPress: () => void;
+  isExpectedInstalError?: boolean;
+  isAdjustSubmitting?: boolean;
+  onAdjustSubmit?: () => void;
   isBoosterAvailable?: boolean;
   isBoosterApplied?: boolean;
   onBoosterPress?: () => void;
