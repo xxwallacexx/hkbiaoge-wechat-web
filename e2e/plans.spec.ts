@@ -210,4 +210,24 @@ test.describe("/plans", () => {
       /\/plans\/coupon\/basicInfo\?planId=9&sheetId=drive-9/,
     );
   });
+
+  test("tapping a ready ci plan opens its basic-info screen", async ({
+    page,
+  }) => {
+    await authenticate(page);
+    await page.route(/\/api\/plan(\?|$)/, sendData([plan("1", "Savings A")]));
+    const readyCi = {
+      ...plan("8", "CI Ready"),
+      paymentDetail: paid,
+      sheetDetail: { _id: "sh8", isSynced: true, driveItemId: "drive-8" },
+    };
+    await page.route(/\/api\/ciPlan(\?|$)/, sendData([readyCi]));
+    await page.goto("/zh-HK/plans");
+
+    await page.getByRole("button", { name: "危疾" }).click();
+    await page.getByRole("button", { name: /CI Ready/ }).click();
+    await expect(page).toHaveURL(
+      /\/plans\/ci\/basicInfo\?planId=8&sheetId=drive-8/,
+    );
+  });
 });
