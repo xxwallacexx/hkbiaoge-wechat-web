@@ -2,79 +2,38 @@
 
 import { ChevronLeft, Loader2, SlidersHorizontal } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAuthToken } from "@/hooks/use-auth-token";
-import { useInView } from "@/hooks/use-in-view";
-import { usePlansQuery } from "@/hooks/use-plans-query";
-import { useRouter } from "@/i18n/navigation";
-import { DEFAULT_TAB, PLAN_TABS, resolveTab } from "@/lib/plans";
+import { PLAN_TABS } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 
 import { CompanyFilterSheet } from "./company-filter-sheet";
 import { PlanCard } from "./plan-card";
+import { usePlansScreen } from "./use-plans-screen";
 
 /**
- * The insurance-products screen: a search box, a company filter sheet, a vertical
- * category sidebar, and an infinite-scroll product list. Tab + search + company filter
- * live in the URL (`?tab=&search=&company=`) so the view is shareable.
+ * The insurance-products screen: search box, company filter sheet, vertical category
+ * sidebar, and an infinite-scroll product list. All state / URL / data wiring lives in
+ * `usePlansScreen`; this component is presentation only.
  */
 export function PlansScreen() {
   const t = useTranslations("Plans");
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { ready: authReady } = useAuthToken();
-
-  const tab = resolveTab(searchParams.get("tab"));
-  const search = searchParams.get("search") ?? "";
-  const companyId = searchParams.get("company") ?? undefined;
-
-  const [searchInput, setSearchInput] = useState(search);
-  const [filterOpen, setFilterOpen] = useState(false);
-
-  // Reflect external URL changes (back/forward) into the input.
-  useEffect(() => {
-    setSearchInput(search);
-  }, [search]);
-
-  // Merge a change into the current tab/search/company URL state (locale-aware).
-  function pushUrl(next: {
-    tab?: string;
-    search?: string;
-    company?: string | undefined;
-  }) {
-    const tabKey = next.tab ?? tab.key;
-    const searchValue = next.search ?? search;
-    const company = "company" in next ? next.company : companyId;
-    const query: Record<string, string> = {};
-    if (tabKey !== DEFAULT_TAB.key) query.tab = tabKey;
-    if (searchValue) query.search = searchValue;
-    if (company) query.company = company;
-    router.replace({ pathname: "/plans", query }, { scroll: false });
-  }
-
-  // Debounce the search input into the URL.
-  useEffect(() => {
-    if (searchInput === search) return;
-    const id = setTimeout(() => pushUrl({ search: searchInput }), 300);
-    return () => clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchInput]);
-
-  const query = usePlansQuery({ tab, search, companyId });
-  const plans = useMemo(() => query.data?.pages.flat() ?? [], [query.data]);
-
-  const { ref: sentinelRef, inView } = useInView();
-  useEffect(() => {
-    if (inView && query.hasNextPage && !query.isFetchingNextPage) {
-      query.fetchNextPage();
-    }
-  }, [inView, query.hasNextPage, query.isFetchingNextPage, query]);
-
-  const showLoading = !authReady || query.isLoading;
+  const {
+    tab,
+    companyId,
+    searchInput,
+    setSearchInput,
+    filterOpen,
+    setFilterOpen,
+    pushUrl,
+    goBack,
+    plans,
+    isError,
+    isFetchingNextPage,
+    sentinelRef,
+    showLoading,
+  } = usePlansScreen();
 
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-background">
@@ -83,7 +42,7 @@ export function PlansScreen() {
         <div className="relative flex items-center justify-center py-1">
           <button
             type="button"
-            onClick={() => router.back()}
+            onClick={goBack}
             aria-label={t("back")}
             className="absolute left-0 rounded-full p-1.5 hover:bg-white/10"
           >
@@ -103,8 +62,7 @@ export function PlansScreen() {
             onClick={() => setFilterOpen(true)}
             className={cn(
               "h-11 shrink-0 gap-1.5",
-              companyId &&
-                "ring-2 ring-white ring-offset-2 ring-offset-primary",
+              companyId && "ring-2 ring-white ring-offset-2 ring-offset-primary",
             )}
           >
             {t("filter")}
@@ -137,7 +95,7 @@ export function PlansScreen() {
         </nav>
 
         <div className="flex-1 overflow-y-auto">
-          {query.isError ? (
+          {isError ? (
             <p className="p-6 text-center text-sm text-destructive">
               {t("error")}
             </p>
@@ -155,7 +113,7 @@ export function PlansScreen() {
                 <PlanCard key={plan._id} plan={plan} />
               ))}
               <div ref={sentinelRef} aria-hidden className="h-px" />
-              {query.isFetchingNextPage && (
+              {isFetchingNextPage && (
                 <div className="flex justify-center p-4">
                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                 </div>
