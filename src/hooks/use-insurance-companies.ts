@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { useAuthToken } from "@/hooks/use-auth-token";
-import { api } from "@/lib/api";
+import { api } from "@/lib/api/client";
 import type { InsuranceCompanyDetail } from "@/types";
 
 /**

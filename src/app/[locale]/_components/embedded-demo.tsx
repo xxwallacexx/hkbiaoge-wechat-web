@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { useAuthToken } from "@/hooks/use-auth-token";
 import { useMiniProgram } from "@/hooks/use-mini-program";
-import { api } from "@/lib/api";
+import { api } from "@/lib/api/client";
 import { wechat } from "@/lib/wechat";
 
 /**
