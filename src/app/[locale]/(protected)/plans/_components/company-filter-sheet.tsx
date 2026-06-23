@@ -19,7 +19,9 @@ export function CompanyFilterSheet({
   onSelect,
 }: CompanyFilterSheetProps) {
   const t = useTranslations("Plans");
-  const { data: companies, isLoading, isError } = useInsuranceCompanies();
+  // Only fetch the company list once the sheet is open (avoids an eager request on
+  // every /plans load).
+  const { data: companies, isLoading, isError } = useInsuranceCompanies(open);
 
   return (
     <BottomSheet open={open} onClose={onClose} title={t("chooseCompany")}>

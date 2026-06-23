@@ -8,14 +8,15 @@ import type { InsuranceCompanyDetail } from "@/types";
 
 /**
  * The full insurance-company list for the filter sheet. The endpoint returns every
- * company at once (no pagination), so a plain cached query is enough.
+ * company at once (no pagination), so a plain cached query is enough. Pass
+ * `enabled: false` to defer the fetch until the filter is actually opened.
  */
-export function useInsuranceCompanies() {
+export function useInsuranceCompanies(enabled = true) {
   const { isAuthenticated } = useAuthToken();
 
   return useQuery({
     queryKey: ["insuranceCompanies"],
-    enabled: isAuthenticated,
+    enabled: enabled && isAuthenticated,
     staleTime: 5 * 60_000, // companies rarely change
     queryFn: async () => {
       const res = await api.get("/insuranceCompany");
