@@ -1,9 +1,9 @@
 # wechat-web
 
 A standalone website (Next.js) built to be **embedded into a client-owned WeChat
-Mini Program** via the `<web-view>` component. Same house stack as `webview/`:
-Next 14 (App Router) + Tailwind + shadcn/ui + TanStack Query + axios, plus
-`next-intl` for `zh-CN` / `zh-HK` / `en`.
+Mini Program** via the `<web-view>` component. Same house stack as `webview/`
+(Tailwind + shadcn/ui + TanStack Query + axios + `next-intl`), on Next 16 (App
+Router) + React 19, with locales `zh-CN` / `zh-HK` / `en`.
 
 > **Scope:** this app is **only the website**. The client owns the Mini Program
 > (the verified account, the `<web-view>` page, and the 业务域名 whitelist).
