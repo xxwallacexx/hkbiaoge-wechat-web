@@ -3,6 +3,8 @@
  * (PLAN_TABS, PAGE_SIZE, …) lives in `@/lib/plans`.
  */
 
+import type { PlanPaymentDetail, PlanSheetDetail } from "./saving-plan";
+
 /** Embedded company badge on a plan row / in the filter list. */
 export type InsuranceCompanyDetail = {
   _id: string;
@@ -17,6 +19,10 @@ export type PlanOverview = {
   info: string; // grey subtitle / detail line
   bg: string;
   insuranceCompanyDetail: InsuranceCompanyDetail;
+  // The list endpoint also returns the signed-in user's payment + worksheet status per
+  // plan (null until they exist), used to gate the row tap: pay → sync → param.
+  paymentDetail?: PlanPaymentDetail | null;
+  sheetDetail?: PlanSheetDetail | null;
 };
 
 /** One category tab (the API exposes one endpoint per category). */
@@ -24,6 +30,7 @@ export type PlanTab = {
   key: string; // URL `?tab=` value
   endpoint: string; // API path (relative to the `/api` baseURL)
   labelKey: string; // i18n key under the `Plans` namespace
+  paramPath?: string; // route opened on row tap; only set for ported plan types
 };
 
 /** Arguments for `usePlansQuery`. */

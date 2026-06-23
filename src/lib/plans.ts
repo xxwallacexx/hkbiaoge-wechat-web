@@ -8,7 +8,12 @@ import type { PlanTab } from "@/types";
 export const PAGE_SIZE = 20;
 
 export const PLAN_TABS: readonly PlanTab[] = [
-  { key: "savings", endpoint: "/plan", labelKey: "tabSavings" },
+  {
+    key: "savings",
+    endpoint: "/plan",
+    labelKey: "tabSavings",
+    paramPath: "/plans/param",
+  },
   { key: "dividend", endpoint: "/couponPlan", labelKey: "tabDividend" },
   { key: "ci", endpoint: "/ciPlan", labelKey: "tabCi" },
   { key: "life", endpoint: "/wholelifePlan", labelKey: "tabLife" },
