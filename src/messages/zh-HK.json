@@ -171,7 +171,13 @@
     "inputPremium": "輸入投保金額",
     "paramInputError": "保單參數錯誤",
     "inputPremiumError": "保費資料錯誤，請調整。",
-    "expectedInstalTooLarge": "期望保費過高，請調整。"
+    "expectedInstalTooLarge": "期望保費過高，請調整。",
+    "cashValue": "現金價值",
+    "deathBenefit": "身故賠償",
+    "planOverview": "計劃書概覽",
+    "premium": "保費",
+    "healthStandard": "健康標準",
+    "region": "地區"
   },
   "WholelifePlan": {
     "inputBasicInfo": "輸入基本資料",
