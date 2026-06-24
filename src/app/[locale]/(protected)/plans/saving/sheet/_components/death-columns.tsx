@@ -11,7 +11,7 @@ const negativeRegex = /\((.*?)\)/;
 
 function rightHeader(label: string) {
   return function Header() {
-    return <div className="text-right text-nowrap">{label}</div>;
+    return <div className="text-nowrap text-right">{label}</div>;
   };
 }
 

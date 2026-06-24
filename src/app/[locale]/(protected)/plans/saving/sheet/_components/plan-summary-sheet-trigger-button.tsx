@@ -73,7 +73,10 @@ export function PlanSummarySheetTriggerButton({
             </p>
             <div className="space-y-4">
               <Data field={t("age")} value={personalInfo.age.toString()} />
-              <Data field={t("period")} value={personalInfo.period.toString()} />
+              <Data
+                field={t("period")}
+                value={personalInfo.period.toString()}
+              />
               <Data
                 field={t("premium")}
                 value={`${personalInfo.currency} ${cal.instal}`}
