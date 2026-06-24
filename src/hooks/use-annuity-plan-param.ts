@@ -203,6 +203,5 @@ export function useAnnuityPlanParam() {
     isAdjustSubmitting,
     onAdjustSubmit: () => submitAdjust(),
     onGenerateSheetPress,
-    goBack: () => router.back(),
   };
 }

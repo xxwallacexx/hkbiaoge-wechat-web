@@ -88,6 +88,5 @@ export function useCiPlanBasicInfo() {
     setIsInfoDialogOpen,
     onSubmit,
     isSubmitting,
-    goBack: () => router.back(),
   };
 }

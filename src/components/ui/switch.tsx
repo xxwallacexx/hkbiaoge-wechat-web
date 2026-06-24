@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 
 /**
  * Minimal controlled switch (no Radix dependency) — a button styled as a toggle. Mirrors the
- * subset of the shadcn Switch API we use: `checked`, `onCheckedChange`, `disabled`, `id`.
+ * subset of the shadcn Switch API we use: `checked`, `onCheckedChange`, `disabled`, `id`, and
+ * `aria-labelledby` (point it at the visible heading so the toggle has an accessible name).
  */
 export function Switch({
   checked = false,
@@ -12,12 +13,14 @@ export function Switch({
   disabled = false,
   id,
   className,
+  "aria-labelledby": ariaLabelledby,
 }: {
   checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
   disabled?: boolean;
   id?: string;
   className?: string;
+  "aria-labelledby"?: string;
 }) {
   return (
     <button
@@ -25,6 +28,7 @@ export function Switch({
       role="switch"
       id={id}
       aria-checked={checked}
+      aria-labelledby={ariaLabelledby}
       disabled={disabled}
       onClick={() => onCheckedChange?.(!checked)}
       className={cn(

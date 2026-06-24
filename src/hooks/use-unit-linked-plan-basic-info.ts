@@ -88,6 +88,5 @@ export function useUnitLinkedPlanBasicInfo() {
     setIsInfoDialogOpen,
     onSubmit,
     isSubmitting,
-    goBack: () => router.back(),
   };
 }

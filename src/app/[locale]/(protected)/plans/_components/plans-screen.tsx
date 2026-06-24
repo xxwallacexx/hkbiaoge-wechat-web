@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, Loader2, SlidersHorizontal } from "lucide-react";
+import { Loader2, SlidersHorizontal } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,6 @@ export function PlansScreen() {
     filterOpen,
     setFilterOpen,
     pushUrl,
-    goBack,
     onPlanPress,
     canOpenPlan,
     plans,
@@ -41,15 +40,7 @@ export function PlansScreen() {
     <main className="flex h-screen flex-col overflow-hidden bg-background">
       {/* Blue header: title + search row */}
       <div className="bg-gradient-to-b from-primary to-primary/90 px-4 pb-4 pt-3 text-primary-foreground">
-        <div className="relative flex items-center justify-center py-1">
-          <button
-            type="button"
-            onClick={goBack}
-            aria-label={t("back")}
-            className="absolute left-0 rounded-full p-1.5 hover:bg-white/10"
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </button>
+        <div className="flex items-center justify-center py-1">
           <h1 className="text-xl font-bold md:text-2xl">{t("title")}</h1>
         </div>
         <div className="mt-3 flex items-center gap-2">

@@ -162,6 +162,5 @@ export function useWholelifePlanParam() {
     isCalSubmitting,
     onExpectedInstalChange,
     onGenerateSheetPress,
-    goBack: () => router.back(),
   };
 }

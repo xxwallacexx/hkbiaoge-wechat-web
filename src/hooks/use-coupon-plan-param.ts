@@ -174,6 +174,5 @@ export function useCouponPlanParam() {
     isAdjustSubmitting,
     onAdjustSubmit: () => submitAdjust(),
     onGenerateSheetPress,
-    goBack: () => router.back(),
   };
 }

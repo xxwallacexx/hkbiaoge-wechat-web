@@ -162,11 +162,15 @@ export function AnnuityTriggerButton({
       <BottomSheet open={isInfoOpen} onClose={() => setIsInfoOpen(false)}>
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-            <h2 className="text-lg font-semibold text-muted-foreground">
+            <h2
+              id="annuity-display-type-label"
+              className="text-lg font-semibold text-muted-foreground"
+            >
               {t("annuity")}
             </h2>
             <Switch
               id="annuity-display-type"
+              aria-labelledby="annuity-display-type-label"
               checked={displayType?.isAnnuityEnabled ?? false}
               disabled={isDisplayTypeFetching || isDisplayTypeUpdating}
               onCheckedChange={(value) =>

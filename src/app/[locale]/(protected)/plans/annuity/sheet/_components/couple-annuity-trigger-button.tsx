@@ -129,11 +129,15 @@ export function CoupleAnnuityTriggerButton({
       <BottomSheet open={isInfoOpen} onClose={() => setIsInfoOpen(false)}>
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-            <h2 className="text-lg font-semibold text-muted-foreground">
+            <h2
+              id="couple-annuity-display-type-label"
+              className="text-lg font-semibold text-muted-foreground"
+            >
               {t("coupleAnnuity")}
             </h2>
             <Switch
               id="couple-annuity-display-type"
+              aria-labelledby="couple-annuity-display-type-label"
               checked={displayType?.isCoupleAnnuityEnabled ?? false}
               disabled={isDisplayTypeFetching || isDisplayTypeUpdating}
               onCheckedChange={(value) =>

@@ -88,6 +88,5 @@ export function useWholelifePlanBasicInfo() {
     setIsInfoDialogOpen,
     onSubmit,
     isSubmitting,
-    goBack: () => router.back(),
   };
 }

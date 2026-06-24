@@ -85,6 +85,5 @@ export function useAnnuityPlanBasicInfo() {
     setIsInfoDialogOpen,
     onSubmit,
     isSubmitting,
-    goBack: () => router.back(),
   };
 }

@@ -219,6 +219,5 @@ export function useSavingPlanParam() {
     onBoosterPress,
     beforeBooster,
     afterBooster,
-    goBack: () => router.back(),
   };
 }
