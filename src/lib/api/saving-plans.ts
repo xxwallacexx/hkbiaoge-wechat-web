@@ -113,6 +113,96 @@ export function adjustSavingPlanSheetCal(sheetId: string): Promise<PlanCal> {
     .then((res) => res.data.data as PlanCal);
 }
 
+// --- Sheet page (the generated worksheet) -----------------------------------
+
+/** `GET /sheet/{id}/data` — the raw worksheet as a grid of strings. */
+export function getSavingPlanSheetData(sheetId: string): Promise<string[][]> {
+  return api
+    .get(`/sheet/${sheetId}/data`)
+    .then((res) => res.data.data as string[][]);
+}
+
+/** `GET /sheet/{id}/cal` — the current installment/amount for the summary card. */
+export function getSavingPlanSheetCal(sheetId: string): Promise<PlanCal> {
+  return api
+    .get(`/sheet/${sheetId}/cal`)
+    .then((res) => res.data.data as PlanCal);
+}
+
+/** `GET /sheet/{id}/discount` — per-year discount rates (as strings). */
+export function getSavingPlanSheetDiscount(sheetId: string): Promise<string[]> {
+  return api
+    .get(`/sheet/${sheetId}/discount`)
+    .then((res) => res.data.data as string[]);
+}
+
+/** `PUT /sheet/{id}/discount` — the full discount array (raw numbers). */
+export async function updateSavingPlanSheetDiscount({
+  sheetId,
+  values,
+}: {
+  sheetId: string;
+  values: number[];
+}): Promise<void> {
+  await api.put(`/sheet/${sheetId}/discount`, values);
+}
+
+/** `GET /sheet/{id}/prepaid` — per-year prepaid rates (as strings). */
+export function getSavingPlanSheetPrepaid(sheetId: string): Promise<string[]> {
+  return api
+    .get(`/sheet/${sheetId}/prepaid`)
+    .then((res) => res.data.data as string[]);
+}
+
+/** `PUT /sheet/{id}/prepaid` — the full prepaid array (raw numbers). */
+export async function updateSavingPlanSheetPrepaid({
+  sheetId,
+  values,
+}: {
+  sheetId: string;
+  values: number[];
+}): Promise<void> {
+  await api.put(`/sheet/${sheetId}/prepaid`, values);
+}
+
+/** `GET /sheet/{id}/prepaidStatus` — the "是否預交" selection (a backend literal). */
+export function getSavingPlanSheetPrepaidStatus(
+  sheetId: string,
+): Promise<string> {
+  return api
+    .get(`/sheet/${sheetId}/prepaidStatus`)
+    .then((res) => res.data.data as string);
+}
+
+/** `PUT /sheet/{id}/prepaidStatus` — a raw string body, so set application/json explicitly
+ * (like {@link updateSavingPlanSheetCal}) or the Axum handler returns 415. */
+export async function updateSavingPlanSheetPrepaidStatus({
+  sheetId,
+  value,
+}: {
+  sheetId: string;
+  value: string;
+}): Promise<void> {
+  await api.put(`/sheet/${sheetId}/prepaidStatus`, value, {
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+/** `PUT /sheet/{id}/withdrawal` — set a withdrawal over rows [startRow, endRow]. */
+export async function updateSavingPlanSheetWithdrawal({
+  sheetId,
+  startRow,
+  endRow,
+  value,
+}: {
+  sheetId: string;
+  startRow: number;
+  endRow: number;
+  value: number;
+}): Promise<void> {
+  await api.put(`/sheet/${sheetId}/withdrawal`, { startRow, endRow, value });
+}
+
 /**
  * Whether to offer the "booster" uplift: a fresh (un-applied) suggestion exists, the
  * current expected installment still equals the pre-booster value, and the booster
