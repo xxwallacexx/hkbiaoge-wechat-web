@@ -17,6 +17,24 @@ export type SavingPlanParam = {
   withdrawalLength: number;
   createdAt: string;
   updatedAt: string;
+  // Sheet-page editing ranges (saving only). Present when the plan supports discount /
+  // prepaid edits; the sheet page shows the matching trigger buttons only when set.
+  discountRange?: string;
+  prepaidCell?: string;
+  prepaidOptions?: string[];
+  prepaidRange?: string[];
+};
+
+/** A worksheet row keyed by its (Chinese) column header — the raw strings the API returns. */
+export type PlanData = {
+  [key: string]: string;
+};
+
+/** One year's withdrawal, derived from the sheet data for the withdrawal overview/chart. */
+export type WithdrawalData = {
+  year: string;
+  age: string;
+  withdrawal: number;
 };
 
 /**
