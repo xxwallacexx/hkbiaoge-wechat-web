@@ -22,6 +22,17 @@ export type UnitLinkedPlanParam = {
   minAge: number;
   /** "A" → single cal sheet; "B" → amount → range → installment sheet. */
   planType: "A" | "B";
+  // Sheet-page fields (the API returns these on the param read). The unit-linked sheet
+  // renders a single table keyed by `headers` (no premium/death split), reads/writes the
+  // withdrawal column via `withdrawalCol`, and gates the type-B health/area + custom-parameter
+  // editors on the matching cells being present.
+  headers: string[];
+  withdrawalCol: string;
+  areaCell?: string;
+  healthCell?: string;
+  areaOptions?: string[];
+  healthOptions?: string[];
+  customParameters?: { name: string; cell: string }[];
   createdAt: string;
   updatedAt: string;
 };
@@ -38,6 +49,13 @@ export type UnitLinkedPlanSheetBasicInfo = {
   name: string;
   sex: "男" | "女";
   age: number;
+};
+
+/** `GET /unitLinkedSheet/{id}/info` — period/currency/currentInterestRate for the summary. */
+export type UnitLinkedPlanSheetInfo = {
+  period: string;
+  currency: string;
+  currentInterestRate: string;
 };
 
 /** Values collected by the unit-linked basic-info form (step 1). */
