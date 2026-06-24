@@ -252,4 +252,27 @@ test.describe("/plans", () => {
       /\/plans\/wholelife\/basicInfo\?planId=7&sheetId=drive-7/,
     );
   });
+
+  test("tapping a ready index-linked plan opens its basic-info screen", async ({
+    page,
+  }) => {
+    await authenticate(page);
+    await page.route(/\/api\/plan(\?|$)/, sendData([plan("1", "Savings A")]));
+    const readyUnitLinked = {
+      ...plan("6", "Unit Linked Ready"),
+      paymentDetail: paid,
+      sheetDetail: { _id: "sh6", isSynced: true, driveItemId: "drive-6" },
+    };
+    await page.route(
+      /\/api\/unitLinkedPlan(\?|$)/,
+      sendData([readyUnitLinked]),
+    );
+    await page.goto("/zh-HK/plans");
+
+    await page.getByRole("button", { name: "指數相連" }).click();
+    await page.getByRole("button", { name: /Unit Linked Ready/ }).click();
+    await expect(page).toHaveURL(
+      /\/plans\/unitLinked\/basicInfo\?planId=6&sheetId=drive-6/,
+    );
+  });
 });
