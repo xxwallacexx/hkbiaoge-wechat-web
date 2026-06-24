@@ -28,6 +28,8 @@ export function PlansScreen() {
     setFilterOpen,
     pushUrl,
     goBack,
+    onPlanPress,
+    canOpenPlan,
     plans,
     isError,
     isFetchingNextPage,
@@ -111,7 +113,11 @@ export function PlansScreen() {
           ) : (
             <>
               {plans.map((plan) => (
-                <PlanCard key={plan._id} plan={plan} />
+                <PlanCard
+                  key={plan._id}
+                  plan={plan}
+                  onPress={canOpenPlan ? () => onPlanPress(plan) : undefined}
+                />
               ))}
               <div ref={sentinelRef} aria-hidden className="h-px" />
               {isFetchingNextPage && (

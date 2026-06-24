@@ -8,16 +8,42 @@ import type { PlanTab } from "@/types";
 export const PAGE_SIZE = 20;
 
 export const PLAN_TABS: readonly PlanTab[] = [
-  { key: "savings", endpoint: "/plan", labelKey: "tabSavings" },
-  { key: "dividend", endpoint: "/couponPlan", labelKey: "tabDividend" },
-  { key: "ci", endpoint: "/ciPlan", labelKey: "tabCi" },
-  { key: "life", endpoint: "/wholelifePlan", labelKey: "tabLife" },
+  {
+    key: "savings",
+    endpoint: "/plan",
+    labelKey: "tabSavings",
+    paramPath: "/plans/saving/param",
+  },
+  {
+    key: "dividend",
+    endpoint: "/couponPlan",
+    labelKey: "tabDividend",
+    paramPath: "/plans/coupon/basicInfo",
+  },
+  {
+    key: "ci",
+    endpoint: "/ciPlan",
+    labelKey: "tabCi",
+    paramPath: "/plans/ci/basicInfo",
+  },
+  {
+    key: "life",
+    endpoint: "/wholelifePlan",
+    labelKey: "tabLife",
+    paramPath: "/plans/wholelife/basicInfo",
+  },
   {
     key: "indexLinked",
     endpoint: "/unitLinkedPlan",
     labelKey: "tabIndexLinked",
+    paramPath: "/plans/unitLinked/basicInfo",
   },
-  { key: "annuity", endpoint: "/annuityPlan", labelKey: "tabAnnuity" },
+  {
+    key: "annuity",
+    endpoint: "/annuityPlan",
+    labelKey: "tabAnnuity",
+    paramPath: "/plans/annuity/basicInfo",
+  },
 ] as const;
 
 export const DEFAULT_TAB = PLAN_TABS[0];

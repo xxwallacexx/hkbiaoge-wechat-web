@@ -141,4 +141,158 @@ test.describe("/plans", () => {
     await page.getByText("Plan 19", { exact: true }).scrollIntoViewIfNeeded();
     await expect(page.getByText("Plan 100", { exact: true })).toBeVisible();
   });
+
+  const paid = {
+    _id: "pay1",
+    completedAt: "2026-01-01T00:00:00Z",
+    expiredAt: "2030-01-01T00:00:00Z",
+  };
+
+  test("tapping a paid, synced saving plan opens the param screen with its sheetId", async ({
+    page,
+  }) => {
+    await authenticate(page);
+    const ready = {
+      ...plan("1", "Ready Plan"),
+      paymentDetail: paid,
+      sheetDetail: { _id: "sh1", isSynced: true, driveItemId: "drive-1" },
+    };
+    await page.route(/\/api\/plan(\?|$)/, sendData([ready]));
+    await page.goto("/zh-HK/plans");
+
+    await page.getByRole("button", { name: /Ready Plan/ }).click();
+    await expect(page).toHaveURL(
+      /\/plans\/saving\/param\?planId=1&sheetId=drive-1/,
+    );
+  });
+
+  test("tapping an unpaid plan routes to the payment flow", async ({
+    page,
+  }) => {
+    await authenticate(page);
+    await page.route(/\/api\/plan(\?|$)/, sendData([plan("1", "Unpaid Plan")]));
+    await page.goto("/zh-HK/plans");
+
+    await page.getByRole("button", { name: /Unpaid Plan/ }).click();
+    await expect(page).toHaveURL(/\/plans\/payment\?planId=1/);
+  });
+
+  test("tapping a paid but unsynced plan routes to the sheet-sync flow", async ({
+    page,
+  }) => {
+    await authenticate(page);
+    const unsynced = {
+      ...plan("1", "Unsynced Plan"),
+      paymentDetail: paid,
+      sheetDetail: { _id: "sh1", isSynced: false },
+    };
+    await page.route(/\/api\/plan(\?|$)/, sendData([unsynced]));
+    await page.goto("/zh-HK/plans");
+
+    await page.getByRole("button", { name: /Unsynced Plan/ }).click();
+    await expect(page).toHaveURL(/\/plans\/sheetSync\?planId=1/);
+  });
+
+  test("tapping a ready dividend plan opens its basic-info screen", async ({
+    page,
+  }) => {
+    await authenticate(page);
+    await page.route(/\/api\/plan(\?|$)/, sendData([plan("1", "Savings A")]));
+    const readyCoupon = {
+      ...plan("9", "Dividend Ready"),
+      paymentDetail: paid,
+      sheetDetail: { _id: "sh9", isSynced: true, driveItemId: "drive-9" },
+    };
+    await page.route(/\/api\/couponPlan(\?|$)/, sendData([readyCoupon]));
+    await page.goto("/zh-HK/plans");
+
+    await page.getByRole("button", { name: "派息" }).click();
+    await page.getByRole("button", { name: /Dividend Ready/ }).click();
+    await expect(page).toHaveURL(
+      /\/plans\/coupon\/basicInfo\?planId=9&sheetId=drive-9/,
+    );
+  });
+
+  test("tapping a ready ci plan opens its basic-info screen", async ({
+    page,
+  }) => {
+    await authenticate(page);
+    await page.route(/\/api\/plan(\?|$)/, sendData([plan("1", "Savings A")]));
+    const readyCi = {
+      ...plan("8", "CI Ready"),
+      paymentDetail: paid,
+      sheetDetail: { _id: "sh8", isSynced: true, driveItemId: "drive-8" },
+    };
+    await page.route(/\/api\/ciPlan(\?|$)/, sendData([readyCi]));
+    await page.goto("/zh-HK/plans");
+
+    await page.getByRole("button", { name: "危疾" }).click();
+    await page.getByRole("button", { name: /CI Ready/ }).click();
+    await expect(page).toHaveURL(
+      /\/plans\/ci\/basicInfo\?planId=8&sheetId=drive-8/,
+    );
+  });
+
+  test("tapping a ready life plan opens its basic-info screen", async ({
+    page,
+  }) => {
+    await authenticate(page);
+    await page.route(/\/api\/plan(\?|$)/, sendData([plan("1", "Savings A")]));
+    const readyLife = {
+      ...plan("7", "Life Ready"),
+      paymentDetail: paid,
+      sheetDetail: { _id: "sh7", isSynced: true, driveItemId: "drive-7" },
+    };
+    await page.route(/\/api\/wholelifePlan(\?|$)/, sendData([readyLife]));
+    await page.goto("/zh-HK/plans");
+
+    await page.getByRole("button", { name: "人壽" }).click();
+    await page.getByRole("button", { name: /Life Ready/ }).click();
+    await expect(page).toHaveURL(
+      /\/plans\/wholelife\/basicInfo\?planId=7&sheetId=drive-7/,
+    );
+  });
+
+  test("tapping a ready index-linked plan opens its basic-info screen", async ({
+    page,
+  }) => {
+    await authenticate(page);
+    await page.route(/\/api\/plan(\?|$)/, sendData([plan("1", "Savings A")]));
+    const readyUnitLinked = {
+      ...plan("6", "Unit Linked Ready"),
+      paymentDetail: paid,
+      sheetDetail: { _id: "sh6", isSynced: true, driveItemId: "drive-6" },
+    };
+    await page.route(
+      /\/api\/unitLinkedPlan(\?|$)/,
+      sendData([readyUnitLinked]),
+    );
+    await page.goto("/zh-HK/plans");
+
+    await page.getByRole("button", { name: "指數相連" }).click();
+    await page.getByRole("button", { name: /Unit Linked Ready/ }).click();
+    await expect(page).toHaveURL(
+      /\/plans\/unitLinked\/basicInfo\?planId=6&sheetId=drive-6/,
+    );
+  });
+
+  test("tapping a ready annuity plan opens its basic-info screen", async ({
+    page,
+  }) => {
+    await authenticate(page);
+    await page.route(/\/api\/plan(\?|$)/, sendData([plan("1", "Savings A")]));
+    const readyAnnuity = {
+      ...plan("5", "Annuity Ready"),
+      paymentDetail: paid,
+      sheetDetail: { _id: "sh5", isSynced: true, driveItemId: "drive-5" },
+    };
+    await page.route(/\/api\/annuityPlan(\?|$)/, sendData([readyAnnuity]));
+    await page.goto("/zh-HK/plans");
+
+    await page.getByRole("button", { name: "年金" }).click();
+    await page.getByRole("button", { name: /Annuity Ready/ }).click();
+    await expect(page).toHaveURL(
+      /\/plans\/annuity\/basicInfo\?planId=5&sheetId=drive-5/,
+    );
+  });
 });

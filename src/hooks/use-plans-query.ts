@@ -3,7 +3,7 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 import { useAuthToken } from "@/hooks/use-auth-token";
-import { api } from "@/lib/api";
+import { api } from "@/lib/api/client";
 import { PAGE_SIZE } from "@/lib/plans";
 import type { PlanOverview, PlansQueryParams } from "@/types";
 

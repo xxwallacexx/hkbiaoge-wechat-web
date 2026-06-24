@@ -8,6 +8,7 @@ import { useInView } from "@/hooks/use-in-view";
 import { usePlansQuery } from "@/hooks/use-plans-query";
 import { useRouter } from "@/i18n/navigation";
 import { DEFAULT_TAB, resolveTab } from "@/lib/plans";
+import type { PlanOverview } from "@/types";
 
 /**
  * State, URL sync, and data wiring for the products screen: derives the active tab /
@@ -68,6 +69,33 @@ export function usePlansScreen() {
     }
   }, [inView, query.hasNextPage, query.isFetchingNextPage, query]);
 
+  // Open a plan from the list, mirroring the mobile gating: pay first if unpaid, wait for
+  // the worksheet to sync if it isn't ready, otherwise open the param screen with the
+  // synced sheet's driveItemId. Only ported plan types carry a `paramPath`.
+  function onPlanPress(plan: PlanOverview) {
+    const dest = tab.paramPath;
+    if (!dest) return;
+    const planId = plan._id;
+    if (!plan.paymentDetail?.completedAt) {
+      router.push({
+        pathname: "/plans/payment",
+        query: { planId, destination: dest },
+      });
+      return;
+    }
+    if (!plan.sheetDetail?.isSynced || !plan.sheetDetail.driveItemId) {
+      router.push({
+        pathname: "/plans/sheetSync",
+        query: { planId, destination: dest },
+      });
+      return;
+    }
+    router.push({
+      pathname: dest,
+      query: { planId, sheetId: plan.sheetDetail.driveItemId },
+    });
+  }
+
   return {
     tab,
     companyId,
@@ -77,6 +105,8 @@ export function usePlansScreen() {
     setFilterOpen,
     pushUrl,
     goBack: () => router.back(),
+    onPlanPress,
+    canOpenPlan: !!tab.paramPath,
     plans,
     isError: query.isError,
     isFetchingNextPage: query.isFetchingNextPage,
