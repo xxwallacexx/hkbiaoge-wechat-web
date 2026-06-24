@@ -9,6 +9,7 @@ import type { PlanPaymentDetail, PlanSheetDetail } from "./plan-detail";
 export type InsuranceCompanyDetail = {
   _id: string;
   name: string; // badge label, e.g. 友記 / 保記
+  realName: string;
   bg: string; // badge background color (CSS color)
 };
 

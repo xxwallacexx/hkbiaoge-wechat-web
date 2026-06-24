@@ -35,6 +35,20 @@
     "empty": "暂无产品",
     "error": "加载产品失败"
   },
+  "Brochures": {
+    "title": "产品单页",
+    "searchPlaceholder": "搜索产品单页",
+    "filter": "筛选",
+    "chooseCompany": "选择保险公司",
+    "empty": "暂无产品单页",
+    "error": "加载产品单页失败",
+    "tabSaving": "储蓄保险",
+    "tabCi": "危疾保险",
+    "tabLiving": "生活保险",
+    "tabWholelife": "人寿保险",
+    "tabMedical": "医疗保险",
+    "tabRetirement": "退休保险"
+  },
   "Unauthorized": {
     "title": "需要登录",
     "description": "请从微信小程序打开此页面以继续。"

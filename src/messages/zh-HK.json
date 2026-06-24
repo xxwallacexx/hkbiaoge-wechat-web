@@ -35,6 +35,20 @@
     "empty": "暫無產品",
     "error": "載入產品失敗"
   },
+  "Brochures": {
+    "title": "產品單頁",
+    "searchPlaceholder": "搜尋產品單頁",
+    "filter": "篩選",
+    "chooseCompany": "選擇保險公司",
+    "empty": "暫無產品單頁",
+    "error": "載入產品單頁失敗",
+    "tabSaving": "儲蓄保險",
+    "tabCi": "危疾保險",
+    "tabLiving": "生活保險",
+    "tabWholelife": "人壽保險",
+    "tabMedical": "醫療保險",
+    "tabRetirement": "退休保險"
+  },
   "Unauthorized": {
     "title": "需要登入",
     "description": "請從微信小程序開啟此頁面以繼續。"
