@@ -86,15 +86,25 @@ describe("buildSavingPlanSheetData", () => {
   });
 
   it("derives withdrawals from column 11 with year/age, dropping non-numeric cells", () => {
-    const { withdrawalData } = buildSavingPlanSheetData([rowOne, rowTwo], param);
+    const { withdrawalData } = buildSavingPlanSheetData(
+      [rowOne, rowTwo],
+      param,
+    );
     // rowTwo's "(500)" parses to NaN and is filtered out, leaving only rowOne.
-    expect(withdrawalData).toEqual([{ year: "1", age: "30", withdrawal: 1000 }]);
+    expect(withdrawalData).toEqual([
+      { year: "1", age: "30", withdrawal: 1000 },
+    ]);
   });
 
   it("keeps each surviving withdrawal aligned to its own row when an earlier row is non-numeric", () => {
     // rowTwo (year 2) has a non-numeric withdrawal and is dropped; rowOne's 1000 must keep
     // its OWN year (1), not borrow the dropped earlier row's label.
-    const { withdrawalData } = buildSavingPlanSheetData([rowTwo, rowOne], param);
-    expect(withdrawalData).toEqual([{ year: "1", age: "30", withdrawal: 1000 }]);
+    const { withdrawalData } = buildSavingPlanSheetData(
+      [rowTwo, rowOne],
+      param,
+    );
+    expect(withdrawalData).toEqual([
+      { year: "1", age: "30", withdrawal: 1000 },
+    ]);
   });
 });

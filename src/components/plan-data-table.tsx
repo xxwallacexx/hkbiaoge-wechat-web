@@ -82,10 +82,10 @@ export function PlanDataTable<TData, TValue>({
 
   return (
     <Table
-      className="inline-table border-collapse relative"
+      className="relative inline-table border-collapse"
       divClassname="max-h-[95vh] overflow-y-scroll"
     >
-      <TableHeader className="sticky w-full top-0 z-10">
+      <TableHeader className="sticky top-0 z-10 w-full">
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
