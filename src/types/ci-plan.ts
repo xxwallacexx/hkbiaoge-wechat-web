@@ -40,6 +40,14 @@ export type CiPlanSheetBasicInfo = {
   age: number;
 };
 
+/** `GET /ciSheet/{id}/info` — period/health/area/currency for the sheet summary card. */
+export type CiPlanSheetInfo = {
+  period: string;
+  health: string;
+  area: string;
+  currency: string;
+};
+
 /** Values collected by the CI basic-info form (step 1). */
 export type CiPlanBasicInfoFormValues = {
   name: string;

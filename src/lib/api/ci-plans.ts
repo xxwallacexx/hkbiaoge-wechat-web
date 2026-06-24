@@ -9,6 +9,7 @@ import { api } from "@/lib/api/client";
 import type {
   CiPlanParam,
   CiPlanSheetBasicInfo,
+  CiPlanSheetInfo,
   PlanCal,
   PlanCalWithCurrency,
   PlanDetail,
@@ -94,4 +95,29 @@ export function updateCiPlanSheetCal({
       headers: { "Content-Type": "application/json" },
     })
     .then((res) => res.data.data as PlanCal);
+}
+
+// --- Sheet page (the generated worksheet) -----------------------------------
+// CI has no withdrawal / discount / prepaid editor (no such backend routes), so the sheet
+// page only needs these read getters.
+
+/** `GET /ciSheet/{id}/data` — the raw worksheet as a grid of strings. */
+export function getCiPlanSheetData(sheetId: string): Promise<string[][]> {
+  return api
+    .get(`/ciSheet/${sheetId}/data`)
+    .then((res) => res.data.data as string[][]);
+}
+
+/** `GET /ciSheet/{id}/cal` — the current installment/amount for the summary card. */
+export function getCiPlanSheetCal(sheetId: string): Promise<PlanCal> {
+  return api
+    .get(`/ciSheet/${sheetId}/cal`)
+    .then((res) => res.data.data as PlanCal);
+}
+
+/** `GET /ciSheet/{id}/info` — period/health/area/currency for the summary card. */
+export function getCiPlanSheetInfo(sheetId: string): Promise<CiPlanSheetInfo> {
+  return api
+    .get(`/ciSheet/${sheetId}/info`)
+    .then((res) => res.data.data as CiPlanSheetInfo);
 }

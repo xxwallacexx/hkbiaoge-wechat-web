@@ -171,7 +171,13 @@
     "inputPremium": "Enter premium",
     "paramInputError": "Policy parameter error",
     "inputPremiumError": "Premium data error, please adjust.",
-    "expectedInstalTooLarge": "Expected premium too high, please adjust."
+    "expectedInstalTooLarge": "Expected premium too high, please adjust.",
+    "cashValue": "Cash value",
+    "deathBenefit": "Death benefit",
+    "planOverview": "Plan overview",
+    "premium": "Premium",
+    "healthStandard": "Health standard",
+    "region": "Region"
   },
   "WholelifePlan": {
     "inputBasicInfo": "Enter basic info",
