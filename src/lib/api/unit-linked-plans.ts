@@ -14,6 +14,7 @@ import type {
   UnitLinkedEstimatedInstal,
   UnitLinkedPlanParam,
   UnitLinkedPlanSheetBasicInfo,
+  UnitLinkedPlanSheetInfo,
 } from "@/types";
 
 export function getUnitLinkedPlanDetail(planId: string): Promise<PlanDetail> {
@@ -125,4 +126,114 @@ export function updateUnitLinkedPlanSheetInstall({
       headers: { "Content-Type": "application/json" },
     })
     .then(() => undefined);
+}
+
+// --- Sheet page (the generated worksheet) -----------------------------------
+
+/** `GET /unitLinkedSheet/{id}/data` — the raw worksheet as a grid of strings (cols A–J). */
+export function getUnitLinkedPlanSheetData(
+  sheetId: string,
+): Promise<string[][]> {
+  return api
+    .get(`/unitLinkedSheet/${sheetId}/data`)
+    .then((res) => res.data.data as string[][]);
+}
+
+/** `GET /unitLinkedSheet/{id}/cal` — the current installment/amount for the summary card. */
+export function getUnitLinkedPlanSheetCal(sheetId: string): Promise<PlanCal> {
+  return api
+    .get(`/unitLinkedSheet/${sheetId}/cal`)
+    .then((res) => res.data.data as PlanCal);
+}
+
+/** `GET /unitLinkedSheet/{id}/info` — period/currency/currentInterestRate for the summary. */
+export function getUnitLinkedPlanSheetInfo(
+  sheetId: string,
+): Promise<UnitLinkedPlanSheetInfo> {
+  return api
+    .get(`/unitLinkedSheet/${sheetId}/info`)
+    .then((res) => res.data.data as UnitLinkedPlanSheetInfo);
+}
+
+/** `PUT /unitLinkedSheet/{id}/withdrawal` — set a withdrawal over rows [startRow, endRow]. */
+export async function updateUnitLinkedPlanSheetWithdrawal({
+  sheetId,
+  startRow,
+  endRow,
+  value,
+}: {
+  sheetId: string;
+  startRow: number;
+  endRow: number;
+  value: number;
+}): Promise<void> {
+  await api.put(`/unitLinkedSheet/${sheetId}/withdrawal`, {
+    startRow,
+    endRow,
+    value,
+  });
+}
+
+// --- Type-B-only sheet editors (health / area / custom parameters) ----------
+// The backend 409s these for type A, so the screen only renders them (and thus only calls
+// these) when the matching param cells / customParameters are present (type B).
+
+/** `GET /unitLinkedSheet/{id}/area` — the current 地區 selection. */
+export function getUnitLinkedPlanSheetArea(sheetId: string): Promise<string> {
+  return api
+    .get(`/unitLinkedSheet/${sheetId}/area`)
+    .then((res) => res.data.data as string);
+}
+
+/** `PUT /unitLinkedSheet/{id}/area` — a raw string body, so set application/json explicitly. */
+export async function updateUnitLinkedPlanSheetArea({
+  sheetId,
+  value,
+}: {
+  sheetId: string;
+  value: string;
+}): Promise<void> {
+  await api.put(`/unitLinkedSheet/${sheetId}/area`, value, {
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+/** `GET /unitLinkedSheet/{id}/health` — the current 健康標準 selection. */
+export function getUnitLinkedPlanSheetHealth(sheetId: string): Promise<string> {
+  return api
+    .get(`/unitLinkedSheet/${sheetId}/health`)
+    .then((res) => res.data.data as string);
+}
+
+/** `PUT /unitLinkedSheet/{id}/health` — a raw string body, so set application/json explicitly. */
+export async function updateUnitLinkedPlanSheetHealth({
+  sheetId,
+  value,
+}: {
+  sheetId: string;
+  value: string;
+}): Promise<void> {
+  await api.put(`/unitLinkedSheet/${sheetId}/health`, value, {
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+/** `GET /unitLinkedSheet/{id}/customParameters` — per-parameter values (display strings). */
+export function getUnitLinkedPlanSheetCustomParameters(
+  sheetId: string,
+): Promise<string[]> {
+  return api
+    .get(`/unitLinkedSheet/${sheetId}/customParameters`)
+    .then((res) => res.data.data as string[]);
+}
+
+/** `PUT /unitLinkedSheet/{id}/customParameters` — the full values array (raw numbers). */
+export async function updateUnitLinkedPlanSheetCustomParameters({
+  sheetId,
+  values,
+}: {
+  sheetId: string;
+  values: number[];
+}): Promise<void> {
+  await api.put(`/unitLinkedSheet/${sheetId}/customParameters`, values);
 }
