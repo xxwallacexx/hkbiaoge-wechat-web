@@ -12,6 +12,7 @@ import type {
   PlanDetail,
   WholelifePlanParam,
   WholelifePlanSheetBasicInfo,
+  WholelifePlanSheetInfo,
 } from "@/types";
 
 export function getWholelifePlanDetail(planId: string): Promise<PlanDetail> {
@@ -96,4 +97,51 @@ export function updateWholelifePlanSheetCal({
       headers: { "Content-Type": "application/json" },
     })
     .then((res) => res.data.data as PlanCal);
+}
+
+// --- Sheet page (the generated worksheet) -----------------------------------
+
+/** `GET /wholelifeSheet/{id}/data` — the raw worksheet as a grid of strings. */
+export function getWholelifePlanSheetData(
+  sheetId: string,
+): Promise<string[][]> {
+  return api
+    .get(`/wholelifeSheet/${sheetId}/data`)
+    .then((res) => res.data.data as string[][]);
+}
+
+/** `GET /wholelifeSheet/{id}/cal` — the current installment/amount for the summary card. */
+export function getWholelifePlanSheetCal(sheetId: string): Promise<PlanCal> {
+  return api
+    .get(`/wholelifeSheet/${sheetId}/cal`)
+    .then((res) => res.data.data as PlanCal);
+}
+
+/** `GET /wholelifeSheet/{id}/info` — period/health/area/currency for the summary card. */
+export function getWholelifePlanSheetInfo(
+  sheetId: string,
+): Promise<WholelifePlanSheetInfo> {
+  return api
+    .get(`/wholelifeSheet/${sheetId}/info`)
+    .then((res) => res.data.data as WholelifePlanSheetInfo);
+}
+
+/** `PUT /wholelifeSheet/{id}/withdrawal` — set a withdrawal over rows [startRow, endRow].
+ * Only meaningful when the plan's param has a `withdrawalCol`; the backend no-ops otherwise. */
+export async function updateWholelifePlanSheetWithdrawal({
+  sheetId,
+  startRow,
+  endRow,
+  value,
+}: {
+  sheetId: string;
+  startRow: number;
+  endRow: number;
+  value: number;
+}): Promise<void> {
+  await api.put(`/wholelifeSheet/${sheetId}/withdrawal`, {
+    startRow,
+    endRow,
+    value,
+  });
 }

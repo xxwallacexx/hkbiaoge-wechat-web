@@ -40,6 +40,14 @@ export type WholelifePlanSheetBasicInfo = {
   age: number;
 };
 
+/** `GET /wholelifeSheet/{id}/info` — period/health/area/currency for the sheet summary card. */
+export type WholelifePlanSheetInfo = {
+  period: string;
+  health: string;
+  area: string;
+  currency: string;
+};
+
 /** Values collected by the whole-life basic-info form (step 1). */
 export type WholelifePlanBasicInfoFormValues = {
   name: string;
