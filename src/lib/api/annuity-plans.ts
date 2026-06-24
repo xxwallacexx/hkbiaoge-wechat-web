@@ -10,8 +10,13 @@
 
 import { api } from "@/lib/api/client";
 import type {
+  AnnuityInfo,
   AnnuityPlanParam,
   AnnuityPlanSheetBasicInfo,
+  AnnuityReceivable,
+  AnnuitySheet,
+  AnnuitySheetInfo,
+  CoupleAnnuityInfo,
   PlanCal,
   PlanDetail,
 } from "@/types";
@@ -125,4 +130,128 @@ export function adjustAnnuityPlanSheetCal(sheetId: string): Promise<PlanCal> {
   return api
     .put(`/annuitySheet/${sheetId}/calAdjust`)
     .then((res) => res.data.data as PlanCal);
+}
+
+// --- Sheet page ---
+
+export function getAnnuityPlanSheetData(sheetId: string): Promise<string[][]> {
+  return api
+    .get(`/annuitySheet/${sheetId}/data`)
+    .then((res) => res.data.data as string[][]);
+}
+
+export function getAnnuityPlanSheetInfo(
+  sheetId: string,
+): Promise<AnnuitySheetInfo> {
+  // GET variant of `/info` (the param step only wired the PUT); GENERAL also carries `amount`.
+  return api
+    .get(`/annuitySheet/${sheetId}/info`)
+    .then((res) => res.data.data as AnnuitySheetInfo);
+}
+
+export function updateAnnuityPlanSheetWithdrawal({
+  sheetId,
+  startRow,
+  endRow,
+  value,
+}: {
+  sheetId: string;
+  startRow: number;
+  endRow: number;
+  value: number;
+}): Promise<void> {
+  // Same contract as the other sheets: writes `value` down the withdrawal column [startRow..endRow].
+  return api
+    .put(`/annuitySheet/${sheetId}/withdrawal`, { startRow, endRow, value })
+    .then(() => undefined);
+}
+
+export function getAnnuityInfo(sheetId: string): Promise<AnnuityInfo> {
+  return api
+    .get(`/annuitySheet/${sheetId}/annuityInfo`)
+    .then((res) => res.data.data as AnnuityInfo);
+}
+
+export function updateAnnuityInfo({
+  sheetId,
+  annuityOption,
+  annuityAge,
+}: {
+  sheetId: string;
+  annuityOption: string;
+  annuityAge: number;
+}): Promise<void> {
+  return api
+    .put(`/annuitySheet/${sheetId}/annuityInfo`, { annuityOption, annuityAge })
+    .then(() => undefined);
+}
+
+export function getCoupleAnnuityInfo(
+  sheetId: string,
+): Promise<CoupleAnnuityInfo> {
+  // 409s when the param has no `coupleAnnuityRange` (only the couple-annuity plan variants carry it).
+  return api
+    .get(`/annuitySheet/${sheetId}/coupleAnnuityInfo`)
+    .then((res) => res.data.data as CoupleAnnuityInfo);
+}
+
+export function updateCoupleAnnuityInfo({
+  sheetId,
+  coupleAnnuityAge,
+  coupleAnnuityOption,
+}: {
+  sheetId: string;
+  coupleAnnuityAge: number;
+  coupleAnnuityOption: string;
+}): Promise<void> {
+  // The backend DTO is `{coupleAnnuityAge, coupleAnnuityOption}` (camelCase, no serde alias). The
+  // webview proxy forwarded `{annuityAge, annuityOption}`, which would 422 here — send the real names.
+  return api
+    .put(`/annuitySheet/${sheetId}/coupleAnnuityInfo`, {
+      coupleAnnuityAge,
+      coupleAnnuityOption,
+    })
+    .then(() => undefined);
+}
+
+export function getAnnuityReceivable(
+  sheetId: string,
+): Promise<AnnuityReceivable[]> {
+  return api
+    .get(`/annuitySheet/${sheetId}/annuityReceivable`)
+    .then((res) => res.data.data as AnnuityReceivable[]);
+}
+
+export function getCoupleAnnuityReceivable(
+  sheetId: string,
+): Promise<AnnuityReceivable[]> {
+  return api
+    .get(`/annuitySheet/${sheetId}/coupleAnnuityReceivable`)
+    .then((res) => res.data.data as AnnuityReceivable[]);
+}
+
+export function getAnnuityDisplayType(sheetId: string): Promise<AnnuitySheet> {
+  // No dedicated displayed-type GET — the flags live on the sheet doc root.
+  return api
+    .get(`/annuitySheet/${sheetId}`)
+    .then((res) => res.data.data as AnnuitySheet);
+}
+
+export function getAnnuityPayoutPeriod(sheetId: string): Promise<string> {
+  // Gated on `payoutPeriodOptions` being present (409s otherwise) — the current R10 cell text.
+  return api
+    .get(`/annuitySheet/${sheetId}/payoutPeriod`)
+    .then((res) => res.data.data as string);
+}
+
+export function updateAnnuityPayoutPeriod({
+  sheetId,
+  value,
+}: {
+  sheetId: string;
+  value: string;
+}): Promise<void> {
+  return api
+    .put(`/annuitySheet/${sheetId}/payoutPeriod`, { value })
+    .then(() => undefined);
 }
