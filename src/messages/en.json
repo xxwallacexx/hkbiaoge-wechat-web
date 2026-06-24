@@ -35,6 +35,20 @@
     "empty": "No products found",
     "error": "Failed to load products"
   },
+  "Brochures": {
+    "title": "Brochures",
+    "searchPlaceholder": "Search brochures",
+    "filter": "Filter",
+    "chooseCompany": "Select insurance company",
+    "empty": "No brochures found",
+    "error": "Failed to load brochures",
+    "tabSaving": "Savings",
+    "tabCi": "Critical illness",
+    "tabLiving": "Living",
+    "tabWholelife": "Whole life",
+    "tabMedical": "Medical",
+    "tabRetirement": "Retirement"
+  },
   "Unauthorized": {
     "title": "Sign-in required",
     "description": "Please open this page from the WeChat Mini Program to continue."
