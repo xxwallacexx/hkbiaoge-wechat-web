@@ -1,9 +1,10 @@
 "use client";
 
-import { ChevronLeft, Info, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { ExpiredCard } from "@/components/expired-card";
+import { PlanHeader } from "@/components/plan-header";
 import { PlanIntroCard } from "@/components/plan-intro-card";
 import { PlanPremiumCard } from "@/components/plan-premium-card";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
@@ -53,7 +54,6 @@ export function SavingPlanParamScreen() {
     onBoosterPress,
     beforeBooster,
     afterBooster,
-    goBack,
   } = useSavingPlanParam();
 
   if (!planId || !sheetId) return null;
@@ -72,27 +72,11 @@ export function SavingPlanParamScreen() {
 
   return (
     <main className="flex min-h-screen flex-col bg-background">
-      <div className="relative flex items-center justify-center rounded-b-3xl bg-gradient-to-b from-primary to-primary/90 px-4 pb-8 pt-6 text-primary-foreground">
-        <button
-          type="button"
-          onClick={goBack}
-          aria-label={t("back")}
-          className="absolute left-4 rounded-full p-1.5 hover:bg-white/10"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </button>
-        <h1 className="text-xl font-bold md:text-2xl">
-          {t("inputPlanParams")}
-        </h1>
-        <button
-          type="button"
-          onClick={() => setIsInfoDialogOpen(true)}
-          aria-label={t("info")}
-          className="absolute right-4 rounded-full border border-white/60 p-1.5 hover:bg-white/10"
-        >
-          <Info className="h-5 w-5" />
-        </button>
-      </div>
+      <PlanHeader
+        title={t("inputPlanParams")}
+        onInfoPress={() => setIsInfoDialogOpen(true)}
+        infoLabel={t("info")}
+      />
 
       <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="mx-auto w-full max-w-xl rounded-xl border bg-muted/40 p-4 shadow-sm">

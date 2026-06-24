@@ -158,6 +158,5 @@ export function useCiPlanParam() {
     isCalSubmitting,
     onExpectedInstalChange,
     onGenerateSheetPress,
-    goBack: () => router.back(),
   };
 }

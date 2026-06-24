@@ -104,7 +104,6 @@ export function usePlansScreen() {
     filterOpen,
     setFilterOpen,
     pushUrl,
-    goBack: () => router.back(),
     onPlanPress,
     canOpenPlan: !!tab.paramPath,
     plans,

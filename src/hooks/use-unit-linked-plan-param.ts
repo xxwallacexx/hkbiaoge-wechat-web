@@ -205,6 +205,5 @@ export function useUnitLinkedPlanParam() {
     onGenerateSheetPress,
     onInstallSubmit: (value: number) => submitInstall(value),
     isInstallSubmitting,
-    goBack: () => router.back(),
   };
 }

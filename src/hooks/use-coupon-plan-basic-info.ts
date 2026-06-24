@@ -88,6 +88,5 @@ export function useCouponPlanBasicInfo() {
     setIsInfoDialogOpen,
     onSubmit,
     isSubmitting,
-    goBack: () => router.back(),
   };
 }
