@@ -9,6 +9,7 @@ import { api } from "@/lib/api/client";
 import type {
   CouponPlanParam,
   CouponPlanSheetBasicInfo,
+  CouponPlanSheetInfo,
   PlanCal,
   PlanCalWithCurrency,
   PlanDetail,
@@ -97,4 +98,48 @@ export function adjustCouponPlanSheetCal(sheetId: string): Promise<PlanCal> {
   return api
     .put(`/couponSheet/${sheetId}/calAdjust`)
     .then((res) => res.data.data as PlanCal);
+}
+
+// --- Sheet page (the generated worksheet) -----------------------------------
+
+/** `GET /couponSheet/{id}/data` — the raw worksheet as a grid of strings. */
+export function getCouponPlanSheetData(sheetId: string): Promise<string[][]> {
+  return api
+    .get(`/couponSheet/${sheetId}/data`)
+    .then((res) => res.data.data as string[][]);
+}
+
+/** `GET /couponSheet/{id}/cal` — the current installment/amount for the summary card. */
+export function getCouponPlanSheetCal(sheetId: string): Promise<PlanCal> {
+  return api
+    .get(`/couponSheet/${sheetId}/cal`)
+    .then((res) => res.data.data as PlanCal);
+}
+
+/** `GET /couponSheet/{id}/info` — period/currency/dividend for the summary card. */
+export function getCouponPlanSheetInfo(
+  sheetId: string,
+): Promise<CouponPlanSheetInfo> {
+  return api
+    .get(`/couponSheet/${sheetId}/info`)
+    .then((res) => res.data.data as CouponPlanSheetInfo);
+}
+
+/** `PUT /couponSheet/{id}/withdrawal` — set a withdrawal over rows [startRow, endRow]. */
+export async function updateCouponPlanSheetWithdrawal({
+  sheetId,
+  startRow,
+  endRow,
+  value,
+}: {
+  sheetId: string;
+  startRow: number;
+  endRow: number;
+  value: number;
+}): Promise<void> {
+  await api.put(`/couponSheet/${sheetId}/withdrawal`, {
+    startRow,
+    endRow,
+    value,
+  });
 }

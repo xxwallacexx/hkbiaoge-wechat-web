@@ -33,6 +33,13 @@ export type CouponPlanSheetBasicInfo = {
   age: number;
 };
 
+/** `GET /couponSheet/{id}/info` — period/currency/dividend for the sheet summary card. */
+export type CouponPlanSheetInfo = {
+  period: string;
+  currency: string;
+  dividend: string;
+};
+
 /** Values collected by the coupon basic-info form (step 1). */
 export type CouponPlanBasicInfoFormValues = {
   name: string;
