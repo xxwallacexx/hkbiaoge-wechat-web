@@ -38,7 +38,12 @@ export const PLAN_TABS: readonly PlanTab[] = [
     labelKey: "tabIndexLinked",
     paramPath: "/plans/unitLinked/basicInfo",
   },
-  { key: "annuity", endpoint: "/annuityPlan", labelKey: "tabAnnuity" },
+  {
+    key: "annuity",
+    endpoint: "/annuityPlan",
+    labelKey: "tabAnnuity",
+    paramPath: "/plans/annuity/basicInfo",
+  },
 ] as const;
 
 export const DEFAULT_TAB = PLAN_TABS[0];

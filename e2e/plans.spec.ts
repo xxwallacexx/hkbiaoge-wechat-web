@@ -275,4 +275,24 @@ test.describe("/plans", () => {
       /\/plans\/unitLinked\/basicInfo\?planId=6&sheetId=drive-6/,
     );
   });
+
+  test("tapping a ready annuity plan opens its basic-info screen", async ({
+    page,
+  }) => {
+    await authenticate(page);
+    await page.route(/\/api\/plan(\?|$)/, sendData([plan("1", "Savings A")]));
+    const readyAnnuity = {
+      ...plan("5", "Annuity Ready"),
+      paymentDetail: paid,
+      sheetDetail: { _id: "sh5", isSynced: true, driveItemId: "drive-5" },
+    };
+    await page.route(/\/api\/annuityPlan(\?|$)/, sendData([readyAnnuity]));
+    await page.goto("/zh-HK/plans");
+
+    await page.getByRole("button", { name: "年金" }).click();
+    await page.getByRole("button", { name: /Annuity Ready/ }).click();
+    await expect(page).toHaveURL(
+      /\/plans\/annuity\/basicInfo\?planId=5&sheetId=drive-5/,
+    );
+  });
 });

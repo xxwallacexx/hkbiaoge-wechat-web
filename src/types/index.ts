@@ -1,3 +1,4 @@
+export * from "./annuity-plan";
 export * from "./ci-plan";
 export * from "./common";
 export * from "./coupon-plan";
