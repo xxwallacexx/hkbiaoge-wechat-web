@@ -38,3 +38,41 @@ export function buildUnitLinkedPlanSheetData(
 
   return { tableData, withdrawalData };
 }
+
+/** Which of the sheet's bottom-bar editors this plan enables, plus how many there are. */
+export type UnitLinkedSheetControls = {
+  hasHealthArea: boolean;
+  hasAnnuity: boolean;
+  hasCoupleAnnuity: boolean;
+  extraButtonCount: number;
+};
+
+/**
+ * Decide which optional bottom-bar editors the unit-linked sheet shows (mirrors the webview's
+ * inline gating): the type-B health/area editor (needs both cells) and the type-C annuity /
+ * couple-annuity editors (each needs its range + type options + the shared annuity constraint).
+ * `extraButtonCount` drives the tab list's shrinking col-span in the screen. Gating is by data
+ * presence, so a given plan naturally lights up only its own editors.
+ */
+export function getUnitLinkedSheetControls(
+  param: UnitLinkedPlanParam,
+): UnitLinkedSheetControls {
+  const hasHealthArea = !!(param.areaCell && param.healthCell);
+  const hasAnnuity = !!(
+    param.annuityRange &&
+    param.annuityTypeOptions &&
+    param.annuityConstraint
+  );
+  const hasCoupleAnnuity = !!(
+    param.coupleAnnuityRange &&
+    param.coupleAnnuityTypeOptions &&
+    param.annuityConstraint
+  );
+  return {
+    hasHealthArea,
+    hasAnnuity,
+    hasCoupleAnnuity,
+    extraButtonCount:
+      Number(hasHealthArea) + Number(hasAnnuity) + Number(hasCoupleAnnuity),
+  };
+}
