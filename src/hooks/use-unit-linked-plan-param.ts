@@ -157,17 +157,20 @@ export function useUnitLinkedPlanParam() {
     setIsInstalSheetOpen(true);
   }
 
-  // Recompute on the debounced expected value; branch on planType (A → cal, B → amount).
+  // Recompute on the debounced expected value; branch on planType. C shares A's premium flow
+  // (both drive `/cal`); B uses the amount → range → install flow.
   useEffect(() => {
     if (expectedInstal === "") return;
-    if (planType === "A") submitCal(Number(expectedInstalDebounce));
+    if (planType === "A" || planType === "C")
+      submitCal(Number(expectedInstalDebounce));
     else if (planType === "B") submitAmount(Number(expectedInstalDebounce));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expectedInstalDebounce]);
 
-  // Period options accommodate the entered age as a ceiling (maxAge >= age).
+  // Period options accommodate the entered age as a ceiling (maxAge >= age). Type C returns no
+  // period options (free-numeric input) — guard the null so the C param screen doesn't crash.
   const periodOptions =
-    planParam && basicInfo
+    planParam?.periodOptions && basicInfo
       ? planParam.periodOptions
           .filter((o) => o.maxAge >= basicInfo.age)
           .map((o) => o.value)

@@ -71,10 +71,11 @@ export function useUnitLinkedPlanBasicInfo() {
     onError: () => toast.error(t("paramInputError")),
   });
 
-  // The highest insurable age across the plan's period options (mirrors the mobile bound).
-  const maxAge = planParam?.periodOptions.length
+  // The highest insurable age: A/B take the max across period options; type C has no period
+  // options (`periodOptions` is null) so it falls back to the plan's top-level `maxAge`.
+  const maxAge = planParam?.periodOptions?.length
     ? Math.max(...planParam.periodOptions.map((o) => o.maxAge))
-    : 0;
+    : (planParam?.maxAge ?? 0);
 
   return {
     planId,
