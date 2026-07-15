@@ -30,7 +30,8 @@ import type { AnnuityAgeOption } from "@/types";
  * Shared editor for an annuity selection (single-life or couple): an age (free-input or a
  * select of `annuityAgeOptions`), an option (`annuityTypeOptions`), and — only when
  * `payoutPeriodOptions` is non-empty — a payout period. The age bounds come from the param's
- * annuity constraint. Submitting hands the values back to the trigger's mutation.
+ * annuity constraint. Submitting hands the values back to the trigger's mutation. Used by both
+ * the annuity sheet and the unit-linked (type C) sheet; its labels come from `AnnuityPlan`.
  */
 export function AnnuityForm({
   isLoading = false,

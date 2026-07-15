@@ -150,7 +150,16 @@
     "healthAreaError": "更新失败，请重试。",
     "customParameters": "自定义参数",
     "customParameterChangeLabel": "更改{name}",
-    "customParametersError": "自定义参数错误，请调整。"
+    "customParametersError": "自定义参数错误，请调整。",
+    "annuity": "年金",
+    "coupleAnnuity": "联合年金",
+    "annuityAge": "年金年龄",
+    "annuityOption": "年金选项",
+    "coupleAnnuityAge": "配偶年金年龄",
+    "coupleAnnuityOption": "配偶年金选项",
+    "change": "更改",
+    "annuityError": "更新失败，请重试。",
+    "periodMin": "年期最小为 {min}"
   },
   "AnnuityPlan": {
     "amount": "年金金额",

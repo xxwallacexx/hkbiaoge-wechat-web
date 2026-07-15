@@ -3,11 +3,14 @@
  * token arg (the axios interceptor injects the Bearer), errors reject (no swallow), responses
  * unwrap `res.data.data`, and multi-arg functions take a single object. No booster, no adjust.
  * Reads under `/unitLinkedPlan/*`, writes under `/unitLinkedSheet/*`. The premium write
- * branches on the plan's `planType`: "A" uses `/cal`; "B" uses `/amount` then `/install`.
+ * branches on the plan's `planType`: "A" and "C" use `/cal`; "B" uses `/amount` then
+ * `/install`. Type C's sheet also carries annuity + couple-annuity info (see the bottom).
  */
 
 import { api } from "@/lib/api/client";
 import type {
+  AnnuityInfo,
+  CoupleAnnuityInfo,
   PlanCal,
   PlanCalWithCurrency,
   PlanDetail,
@@ -236,4 +239,62 @@ export async function updateUnitLinkedPlanSheetCustomParameters({
   values: number[];
 }): Promise<void> {
   await api.put(`/unitLinkedSheet/${sheetId}/customParameters`, values);
+}
+
+// --- Type-C-only sheet editors (single + couple annuity) --------------------
+// The backend 409s these for non-C plans, so the sheet only renders them (and thus only
+// calls these) when the matching annuity ranges/options are present on the param.
+
+/** `GET /unitLinkedSheet/{id}/annuityInfo` — the single-life annuity selection (type C). */
+export function getUnitLinkedAnnuityInfo(
+  sheetId: string,
+): Promise<AnnuityInfo> {
+  return api
+    .get(`/unitLinkedSheet/${sheetId}/annuityInfo`)
+    .then((res) => res.data.data as AnnuityInfo);
+}
+
+/** `PUT /unitLinkedSheet/{id}/annuityInfo` — set the single-life annuity age + option. */
+export async function updateUnitLinkedAnnuityInfo({
+  sheetId,
+  annuityAge,
+  annuityOption,
+}: {
+  sheetId: string;
+  annuityAge: number;
+  annuityOption: string;
+}): Promise<void> {
+  await api.put(`/unitLinkedSheet/${sheetId}/annuityInfo`, {
+    annuityAge,
+    annuityOption,
+  });
+}
+
+/** `GET /unitLinkedSheet/{id}/coupleAnnuityInfo` — the joint/spouse annuity selection. */
+export function getUnitLinkedCoupleAnnuityInfo(
+  sheetId: string,
+): Promise<CoupleAnnuityInfo> {
+  return api
+    .get(`/unitLinkedSheet/${sheetId}/coupleAnnuityInfo`)
+    .then((res) => res.data.data as CoupleAnnuityInfo);
+}
+
+/**
+ * `PUT /unitLinkedSheet/{id}/coupleAnnuityInfo` — set the couple annuity age + option. The
+ * backend DTO is `{coupleAnnuityAge, coupleAnnuityOption}` (camelCase, no serde alias) — send
+ * those exact names (the webview proxy remapped from `{annuityAge, annuityOption}`).
+ */
+export async function updateUnitLinkedCoupleAnnuityInfo({
+  sheetId,
+  coupleAnnuityAge,
+  coupleAnnuityOption,
+}: {
+  sheetId: string;
+  coupleAnnuityAge: number;
+  coupleAnnuityOption: string;
+}): Promise<void> {
+  await api.put(`/unitLinkedSheet/${sheetId}/coupleAnnuityInfo`, {
+    coupleAnnuityAge,
+    coupleAnnuityOption,
+  });
 }

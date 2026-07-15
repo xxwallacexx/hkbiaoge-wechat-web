@@ -14,7 +14,10 @@ import {
   getUnitLinkedPlanSheetInfo,
   getUnitLinkedPlanStatus,
 } from "@/lib/api/unit-linked-plans";
-import { buildUnitLinkedPlanSheetData } from "@/lib/unit-linked-plan-sheet";
+import {
+  buildUnitLinkedPlanSheetData,
+  getUnitLinkedSheetControls,
+} from "@/lib/unit-linked-plan-sheet";
 
 /**
  * Data + derived view models for the unit-linked sheet screen (mirrors the webview server
@@ -79,9 +82,18 @@ export function useUnitLinkedPlanSheet() {
     return buildUnitLinkedPlanSheetData(sheetData, planParam);
   }, [sheetData, planParam]);
 
-  // The health/area + custom-parameter editors are type-B-only (the backend 409s them for
-  // type A), so derive the gate from `planType` here rather than in the screen.
+  // The custom-parameter editor is type-B-only (the backend 409s it for other types).
   const isTypeB = planParam?.planType === "B";
+  // Which optional bottom-bar editors this plan enables (health/area = B; annuity +
+  // couple-annuity = C), gated purely by data presence — see `getUnitLinkedSheetControls`.
+  const controls = planParam
+    ? getUnitLinkedSheetControls(planParam)
+    : {
+        hasHealthArea: false,
+        hasAnnuity: false,
+        hasCoupleAnnuity: false,
+        extraButtonCount: 0,
+      };
 
   return {
     planId,
@@ -99,6 +111,9 @@ export function useUnitLinkedPlanSheet() {
     tableData: sheet?.tableData ?? [],
     withdrawalData: sheet?.withdrawalData ?? [],
     isTypeB,
-    hasHealthArea: isTypeB && !!planParam?.areaCell && !!planParam?.healthCell,
+    hasHealthArea: controls.hasHealthArea,
+    hasAnnuity: controls.hasAnnuity,
+    hasCoupleAnnuity: controls.hasCoupleAnnuity,
+    extraButtonCount: controls.extraButtonCount,
   };
 }

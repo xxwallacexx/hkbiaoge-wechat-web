@@ -57,6 +57,14 @@ export const columns: ColumnDef<PlanData>[] = [
     size: 42,
   },
   {
+    // Type C only (present in that plan's `headers`); other types omit 年齡.
+    accessorKey: "年齡",
+    id: "年齡",
+    header: rightHeader("年齡"),
+    cell: plainCell("年齡"),
+    size: 42,
+  },
+  {
     accessorKey: "保單週年",
     id: "保單週年",
     header: rightHeader("保單週年"),
@@ -94,10 +102,24 @@ export const columns: ColumnDef<PlanData>[] = [
     cell: signedCell("當年特別派息"),
   },
   {
+    // Type C only.
+    accessorKey: "特別獎賞",
+    id: "特別獎賞",
+    header: rightHeader("特別獎賞"),
+    cell: signedCell("特別獎賞"),
+  },
+  {
     accessorKey: "當年額外獎賞",
     id: "當年額外獎賞",
     header: rightHeader("當年額外獎賞"),
     cell: signedCell("當年額外獎賞"),
+  },
+  {
+    // Type C only.
+    accessorKey: "特別回報",
+    id: "特別回報",
+    header: rightHeader("特別回報"),
+    cell: signedCell("特別回報"),
   },
   {
     accessorKey: "身故",

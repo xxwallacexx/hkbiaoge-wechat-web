@@ -3,8 +3,12 @@
  * (PlanDetail, PlanCal, payment/sheet) live in `./plan-detail`. Two screens: basic-info
  * (name/sex/age) → param (period/currency/currentInterestRate + premium). NO booster, NO
  * adjust. The premium flow branches on `planType`: "A" = a single cal sheet (like CI);
- * "B" = enter amount → premium range → a 2nd sheet to pick an installment within the range.
+ * "B" = enter amount → premium range → a 2nd sheet to pick an installment within the range;
+ * "C" = like A (same `/cal` + premium card) but the period is a free-numeric input (its
+ * `periodOptions` come back `null`) and the sheet gains annuity + couple-annuity editors.
  */
+
+import type { AnnuityConstraint } from "./annuity-plan";
 
 /** One unit-linked period option: its value plus the maximum insurable age it allows. */
 export type UnitLinkedPlanPeriodOption = {
@@ -16,12 +20,15 @@ export type UnitLinkedPlanPeriodOption = {
 export type UnitLinkedPlanParam = {
   _id: string;
   unitLinkedPlanId: string;
-  periodOptions: UnitLinkedPlanPeriodOption[];
+  /** `null` for type C (free-numeric period input); a select list for A/B. */
+  periodOptions: UnitLinkedPlanPeriodOption[] | null;
   currencyOptions: string[];
   currentInterestRateOptions: string[];
   minAge: number;
-  /** "A" → single cal sheet; "B" → amount → range → installment sheet. */
-  planType: "A" | "B";
+  /** Highest insurable age; the type-C basic-info bound (its periodOptions are null). */
+  maxAge: number;
+  /** "A" → single cal sheet; "B" → amount → range → installment sheet; "C" → like A + annuity. */
+  planType: "A" | "B" | "C";
   // Sheet-page fields (the API returns these on the param read). The unit-linked sheet
   // renders a single table keyed by `headers` (no premium/death split), reads/writes the
   // withdrawal column via `withdrawalCol`, and gates the type-B health/area + custom-parameter
@@ -33,6 +40,16 @@ export type UnitLinkedPlanParam = {
   areaOptions?: string[];
   healthOptions?: string[];
   customParameters?: { name: string; cell: string }[];
+  // Type-C-only sheet fields. `calCell`/`calAmountCell` drive the saving-style cal (the
+  // frontend just calls `/cal`, so they're informational here). The annuity + couple-annuity
+  // editors are gated on their range + options + constraint all being present.
+  calCell?: string;
+  calAmountCell?: string;
+  annuityRange?: string;
+  annuityTypeOptions?: string[];
+  annuityConstraint?: AnnuityConstraint;
+  coupleAnnuityRange?: string;
+  coupleAnnuityTypeOptions?: string[];
   createdAt: string;
   updatedAt: string;
 };
@@ -83,6 +100,17 @@ export type UnitLinkedPlanParamFormValues = {
 /** Props for the unit-linked param form. `periodOptions` is pre-filtered to the entered age. */
 export type UnitLinkedPlanParamFormProps = {
   periodOptions: string[];
+  currencyOptions: string[];
+  currentInterestRateOptions: string[];
+  isSubmitting: boolean;
+  onSubmit: (values: UnitLinkedPlanParamFormValues) => void;
+};
+
+/**
+ * Props for the type-C param form. Same submit shape as the A/B form, but `period` is a
+ * free-numeric input (type C returns no `periodOptions`), so there's no `periodOptions` prop.
+ */
+export type UnitLinkedPlanCParamFormProps = {
   currencyOptions: string[];
   currentInterestRateOptions: string[];
   isSubmitting: boolean;
