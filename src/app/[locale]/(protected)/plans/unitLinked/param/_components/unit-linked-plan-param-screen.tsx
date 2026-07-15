@@ -19,14 +19,15 @@ import { useUnitLinkedPlanParam } from "@/hooks/use-unit-linked-plan-param";
 
 import { UnitLinkedPlanBAmountCard } from "./unit-linked-plan-b-amount-card";
 import { UnitLinkedPlanBInstalCard } from "./unit-linked-plan-b-instal-card";
+import { UnitLinkedPlanCParamForm } from "./unit-linked-plan-c-param-form";
 import { UnitLinkedPlanParamForm } from "./unit-linked-plan-param-form";
 
 /**
- * The unit-linked param screen (step 2/2): period/currency/currentInterestRate form, then a
- * premium bottom-sheet that branches on `planType` — A reuses the shared `PlanPremiumCard`
- * (single debounced cal); B uses an insured-amount card (premium range) handing off to a
- * second installment sheet. All state / data live in `useUnitLinkedPlanParam`; presentation
- * only.
+ * The unit-linked param screen (step 2/2): a period/currency/currentInterestRate form (a
+ * free-numeric period for type C, selects for A/B), then a premium bottom-sheet that branches on
+ * `planType` — A and C reuse the shared `PlanPremiumCard` (single debounced cal); B uses an
+ * insured-amount card (premium range) handing off to a second installment sheet. All state /
+ * data live in `useUnitLinkedPlanParam`; presentation only.
  */
 export function UnitLinkedPlanParamScreen() {
   const t = useTranslations("UnitLinkedPlan");
@@ -89,13 +90,22 @@ export function UnitLinkedPlanParamScreen() {
       <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="mx-auto w-full max-w-xl rounded-xl border bg-muted/40 p-4 shadow-sm">
           <PlanIntroCard planDetail={planDetail} />
-          <UnitLinkedPlanParamForm
-            periodOptions={periodOptions}
-            currencyOptions={currencyOptions}
-            currentInterestRateOptions={currentInterestRateOptions}
-            isSubmitting={isSubmitting}
-            onSubmit={onSubmit}
-          />
+          {planType === "C" ? (
+            <UnitLinkedPlanCParamForm
+              currencyOptions={currencyOptions}
+              currentInterestRateOptions={currentInterestRateOptions}
+              isSubmitting={isSubmitting}
+              onSubmit={onSubmit}
+            />
+          ) : (
+            <UnitLinkedPlanParamForm
+              periodOptions={periodOptions}
+              currencyOptions={currencyOptions}
+              currentInterestRateOptions={currentInterestRateOptions}
+              isSubmitting={isSubmitting}
+              onSubmit={onSubmit}
+            />
+          )}
         </div>
       </div>
 
@@ -108,13 +118,13 @@ export function UnitLinkedPlanParamScreen() {
         </DialogContent>
       </Dialog>
 
-      {/* Premium sheet (step 1): type A = the shared cal card, type B = the amount card. */}
+      {/* Premium sheet (step 1): types A + C = the shared cal card, type B = the amount card. */}
       <BottomSheet
         open={isPremiumSheetOpen}
         onClose={() => setIsPremiumSheetOpen(false)}
         title={planType === "B" ? t("inputInsuredAmount") : t("inputPremium")}
       >
-        {planType === "A" ? (
+        {planType === "A" || planType === "C" ? (
           <PlanPremiumCard
             expectedInstal={expectedInstal}
             currency={currency}
