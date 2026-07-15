@@ -150,7 +150,16 @@
     "healthAreaError": "更新失敗，請重試。",
     "customParameters": "自訂參數",
     "customParameterChangeLabel": "更改{name}",
-    "customParametersError": "自訂參數錯誤，請調整。"
+    "customParametersError": "自訂參數錯誤，請調整。",
+    "annuity": "年金",
+    "coupleAnnuity": "聯合年金",
+    "annuityAge": "年金年齡",
+    "annuityOption": "年金選項",
+    "coupleAnnuityAge": "配偶年金年齡",
+    "coupleAnnuityOption": "配偶年金選項",
+    "change": "更改",
+    "annuityError": "更新失敗，請重試。",
+    "periodMin": "年期最小為 {min}"
   },
   "AnnuityPlan": {
     "amount": "年金金額",

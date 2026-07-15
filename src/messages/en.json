@@ -150,7 +150,16 @@
     "healthAreaError": "Update failed, please try again.",
     "customParameters": "Custom parameters",
     "customParameterChangeLabel": "Change {name}",
-    "customParametersError": "Custom parameter update failed, please adjust."
+    "customParametersError": "Custom parameter update failed, please adjust.",
+    "annuity": "Annuity",
+    "coupleAnnuity": "Joint annuity",
+    "annuityAge": "Annuity age",
+    "annuityOption": "Annuity option",
+    "coupleAnnuityAge": "Spouse annuity age",
+    "coupleAnnuityOption": "Spouse annuity option",
+    "change": "Change",
+    "annuityError": "Update failed, please try again.",
+    "periodMin": "Period must be at least {min}"
   },
   "AnnuityPlan": {
     "amount": "Annuity amount",
