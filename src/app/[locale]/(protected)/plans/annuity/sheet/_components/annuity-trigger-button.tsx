@@ -22,7 +22,7 @@ import {
 } from "@/lib/api/annuity-plans";
 import type { AnnuityAgeOption, AnnuityConstraint } from "@/types";
 
-import { AnnuityForm } from "./annuity-form";
+import { AnnuityForm } from "@/components/annuity-form";
 
 function InfoData({
   isLoading,
