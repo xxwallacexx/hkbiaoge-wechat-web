@@ -5,7 +5,9 @@
  * adjust. The premium flow branches on `planType`: "A" = a single cal sheet (like CI);
  * "B" = enter amount → premium range → a 2nd sheet to pick an installment within the range;
  * "C" = like A (same `/cal` + premium card) but the period is a free-numeric input (its
- * `periodOptions` come back `null`) and the sheet gains annuity + couple-annuity editors.
+ * `periodOptions` come back `null`) and the sheet gains annuity + couple-annuity editors;
+ * "D" = exactly A's flow (period select + `/cal`), and its sheet may carry the type-B
+ * health/area + custom-parameter editors (the backend allows those for B and D).
  */
 
 import type { AnnuityConstraint } from "./annuity-plan";
@@ -20,15 +22,15 @@ export type UnitLinkedPlanPeriodOption = {
 export type UnitLinkedPlanParam = {
   _id: string;
   unitLinkedPlanId: string;
-  /** `null` for type C (free-numeric period input); a select list for A/B. */
+  /** `null` for type C (free-numeric period input); a select list for A/B/D. */
   periodOptions: UnitLinkedPlanPeriodOption[] | null;
   currencyOptions: string[];
   currentInterestRateOptions: string[];
   minAge: number;
   /** Highest insurable age; the type-C basic-info bound (its periodOptions are null). */
   maxAge: number;
-  /** "A" → single cal sheet; "B" → amount → range → installment sheet; "C" → like A + annuity. */
-  planType: "A" | "B" | "C";
+  /** "A"/"D" → single cal sheet; "B" → amount → range → installment sheet; "C" → like A + annuity. */
+  planType: "A" | "B" | "C" | "D";
   // Sheet-page fields (the API returns these on the param read). The unit-linked sheet
   // renders a single table keyed by `headers` (no premium/death split), reads/writes the
   // withdrawal column via `withdrawalCol`, and gates the type-B health/area + custom-parameter
@@ -107,7 +109,7 @@ export type UnitLinkedPlanParamFormProps = {
 };
 
 /**
- * Props for the type-C param form. Same submit shape as the A/B form, but `period` is a
+ * Props for the type-C param form. Same submit shape as the A/B/D form, but `period` is a
  * free-numeric input (type C returns no `periodOptions`), so there's no `periodOptions` prop.
  */
 export type UnitLinkedPlanCParamFormProps = {

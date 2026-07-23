@@ -20,7 +20,7 @@ import { WithdrawalSheetTriggerButton } from "./withdrawal-sheet-trigger-button"
 /**
  * The unit-linked sheet: a single worksheet table (no premium/death split — 身故 is in-table)
  * and a bottom bar with the summary + withdrawal buttons, plus optional editors gated by data
- * presence — a type-B inline health/area editor + floating custom-parameters editor, and the
+ * presence — a type-B/D inline health/area editor + floating custom-parameters editor, and the
  * type-C single + couple annuity editors. `extraButtonCount` shrinks the tab list's col-span as
  * those editors appear. All data/derivation lives in `useUnitLinkedPlanSheet`; presentation only.
  */
@@ -39,7 +39,7 @@ export function UnitLinkedPlanSheetScreen() {
     cal,
     tableData,
     withdrawalData,
-    isTypeB,
+    canEditCustomParameters,
     hasHealthArea,
     extraButtonCount,
   } = useUnitLinkedPlanSheet();
@@ -75,7 +75,7 @@ export function UnitLinkedPlanSheetScreen() {
         {/*
           Bottom bar: always 5 columns. Summary + withdrawal are fixed (1 each), the tab list
           shrinks (3/2/1) as extras appear, and each extra editor is 1 col — so the row always
-          sums to 5. This holds because `extraButtonCount` ≤ 2: health/area is type-B-only and
+          sums to 5. This holds because `extraButtonCount` ≤ 2: health/area is type-B/D-only and
           the annuity editors are type-C-only (mutually exclusive by backend data).
         */}
         <div className="absolute bottom-0 z-10 grid w-full grid-cols-5 items-center justify-center gap-2 border-t-[0.5px] border-slate-300 bg-white p-2 shadow-xl">
@@ -126,7 +126,7 @@ export function UnitLinkedPlanSheetScreen() {
         </div>
       </Tabs>
 
-      {isTypeB && planParam.customParameters ? (
+      {canEditCustomParameters && planParam.customParameters ? (
         <div className="absolute bottom-16 left-1/2 -translate-x-1/2">
           <CustomParametersTriggerButton
             customParameters={planParam.customParameters}

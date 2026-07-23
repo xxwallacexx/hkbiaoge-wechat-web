@@ -49,7 +49,7 @@ export type UnitLinkedSheetControls = {
 
 /**
  * Decide which optional bottom-bar editors the unit-linked sheet shows (mirrors the webview's
- * inline gating): the type-B health/area editor (needs both cells) and the type-C annuity /
+ * inline gating): the type-B/D health/area editor (needs both cells) and the type-C annuity /
  * couple-annuity editors (each needs its range + type options + the shared annuity constraint).
  * `extraButtonCount` drives the tab list's shrinking col-span in the screen. Gating is by data
  * presence, so a given plan naturally lights up only its own editors.
