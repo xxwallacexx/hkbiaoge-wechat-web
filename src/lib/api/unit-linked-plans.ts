@@ -3,7 +3,7 @@
  * token arg (the axios interceptor injects the Bearer), errors reject (no swallow), responses
  * unwrap `res.data.data`, and multi-arg functions take a single object. No booster, no adjust.
  * Reads under `/unitLinkedPlan/*`, writes under `/unitLinkedSheet/*`. The premium write
- * branches on the plan's `planType`: "A" and "C" use `/cal`; "B" uses `/amount` then
+ * branches on the plan's `planType`: "A", "C" and "D" use `/cal`; "B" uses `/amount` then
  * `/install`. Type C's sheet also carries annuity + couple-annuity info (see the bottom).
  */
 

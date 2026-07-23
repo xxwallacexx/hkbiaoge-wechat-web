@@ -26,7 +26,7 @@ import type { UnitLinkedPlanParamFormValues } from "@/types";
  * State, data, and mutations for the unit-linked param screen (step 2/2; mirrors the mobile
  * `unitLinkedPlanParam`). Submits the period/currency/currentInterestRate form, then the
  * premium bottom-sheet branches on `planType`:
- *   A → the debounced input drives `PUT /cal` (amount + premium), then generate.
+ *   A/C/D → the debounced input drives `PUT /cal` (amount + premium), then generate.
  *   B → the debounced input drives `PUT /amount` (a premium range); "Next" opens a second
  *       sheet to pick an installment within the range, which `PUT /install`s, then generate.
  * No booster, no adjust. `UnitLinkedPlanParamScreen` consumes this and only renders.
@@ -157,11 +157,11 @@ export function useUnitLinkedPlanParam() {
     setIsInstalSheetOpen(true);
   }
 
-  // Recompute on the debounced expected value; branch on planType. C shares A's premium flow
-  // (both drive `/cal`); B uses the amount → range → install flow.
+  // Recompute on the debounced expected value; branch on planType. C and D share A's premium
+  // flow (all drive `/cal`); B uses the amount → range → install flow.
   useEffect(() => {
     if (expectedInstal === "") return;
-    if (planType === "A" || planType === "C")
+    if (planType === "A" || planType === "C" || planType === "D")
       submitCal(Number(expectedInstalDebounce));
     else if (planType === "B") submitAmount(Number(expectedInstalDebounce));
     // eslint-disable-next-line react-hooks/exhaustive-deps

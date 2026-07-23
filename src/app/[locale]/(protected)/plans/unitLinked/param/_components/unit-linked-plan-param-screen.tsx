@@ -24,8 +24,8 @@ import { UnitLinkedPlanParamForm } from "./unit-linked-plan-param-form";
 
 /**
  * The unit-linked param screen (step 2/2): a period/currency/currentInterestRate form (a
- * free-numeric period for type C, selects for A/B), then a premium bottom-sheet that branches on
- * `planType` — A and C reuse the shared `PlanPremiumCard` (single debounced cal); B uses an
+ * free-numeric period for type C, selects for A/B/D), then a premium bottom-sheet that branches
+ * on `planType` — A, C and D reuse the shared `PlanPremiumCard` (single debounced cal); B uses an
  * insured-amount card (premium range) handing off to a second installment sheet. All state /
  * data live in `useUnitLinkedPlanParam`; presentation only.
  */
@@ -118,13 +118,13 @@ export function UnitLinkedPlanParamScreen() {
         </DialogContent>
       </Dialog>
 
-      {/* Premium sheet (step 1): types A + C = the shared cal card, type B = the amount card. */}
+      {/* Premium sheet (step 1): types A/C/D = the shared cal card, type B = the amount card. */}
       <BottomSheet
         open={isPremiumSheetOpen}
         onClose={() => setIsPremiumSheetOpen(false)}
         title={planType === "B" ? t("inputInsuredAmount") : t("inputPremium")}
       >
-        {planType === "A" || planType === "C" ? (
+        {planType === "A" || planType === "C" || planType === "D" ? (
           <PlanPremiumCard
             expectedInstal={expectedInstal}
             currency={currency}

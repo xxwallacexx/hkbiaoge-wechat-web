@@ -25,7 +25,7 @@ import {
  * detail/status/param + worksheet data/basicInfo/info/cal through the shared api client (auth
  * from the `wv_token` cookie, gated on `useAuthToken`), and slices the grid into the single
  * 10-column table + the withdrawal view model. Unit-linked has one table (no premium/death
- * split); the type-B health/area + custom-parameter editors live in child components, which
+ * split); the type-B/D health/area + custom-parameter editors live in child components, which
  * invalidate `["unitLinkedPlanSheet", sheetId]`.
  */
 export function useUnitLinkedPlanSheet() {
@@ -82,9 +82,10 @@ export function useUnitLinkedPlanSheet() {
     return buildUnitLinkedPlanSheetData(sheetData, planParam);
   }, [sheetData, planParam]);
 
-  // The custom-parameter editor is type-B-only (the backend 409s it for other types).
-  const isTypeB = planParam?.planType === "B";
-  // Which optional bottom-bar editors this plan enables (health/area = B; annuity +
+  // The custom-parameter editor is for types B and D (the backend 409s it for A/C).
+  const canEditCustomParameters =
+    planParam?.planType === "B" || planParam?.planType === "D";
+  // Which optional bottom-bar editors this plan enables (health/area = B/D; annuity +
   // couple-annuity = C), gated purely by data presence — see `getUnitLinkedSheetControls`.
   const controls = planParam
     ? getUnitLinkedSheetControls(planParam)
@@ -110,7 +111,7 @@ export function useUnitLinkedPlanSheet() {
     cal,
     tableData: sheet?.tableData ?? [],
     withdrawalData: sheet?.withdrawalData ?? [],
-    isTypeB,
+    canEditCustomParameters,
     hasHealthArea: controls.hasHealthArea,
     hasAnnuity: controls.hasAnnuity,
     hasCoupleAnnuity: controls.hasCoupleAnnuity,

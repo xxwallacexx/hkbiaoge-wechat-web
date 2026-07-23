@@ -26,7 +26,7 @@ const detail = {
   updatedAt: "2026-01-01T00:00:00Z",
 };
 
-const param = (planType: "A" | "B") => ({
+const param = (planType: "A" | "B" | "D") => ({
   _id: "pm1",
   unitLinkedPlanId: "p1",
   periodOptions: [
@@ -59,8 +59,8 @@ async function authenticate(page: Page) {
     ]);
 }
 
-/** Mock the reads + basic-info GET/PUT; `planType` selects the A or B param flavour. */
-async function mockReads(page: Page, planType: "A" | "B" = "A") {
+/** Mock the reads + basic-info GET/PUT; `planType` selects the A, B or D param flavour. */
+async function mockReads(page: Page, planType: "A" | "B" | "D" = "A") {
   await page.route(/\/api\/unitLinkedPlan\/p1\/status(\?|$)/, sendData(detail));
   await page.route(
     /\/api\/unitLinkedPlan\/p1\/param(\?|$)/,
@@ -224,6 +224,39 @@ test.describe("/plans/unitLinked (index-linked)", () => {
     await page.getByRole("button", { name: "生成報表" }).click();
     await expect.poll(() => installBody).toBe("150");
     expect(installCt).toContain("application/json");
+    await expect(page).toHaveURL(
+      /\/plans\/unitLinked\/sheet\?planId=p1&sheetId=s1/,
+    );
+  });
+
+  // ---- step 2: param + premium, TYPE D (shares type A's single cal sheet) ----
+
+  test("type D: param submit opens the cal sheet (not the type-B amount card); /cal drives it and generate navigates", async ({
+    page,
+  }) => {
+    await authenticate(page);
+    await mockReads(page, "D");
+    let calBody: string | null = null;
+    await page.route(
+      /\/api\/unitLinkedSheet\/s1\/info(\?|$)/,
+      sendData({ instal: "5000", instal_num: 5000, amount: "100000" }),
+    );
+    await page.route(/\/api\/unitLinkedSheet\/s1\/cal(\?|$)/, (route) => {
+      if (route.request().method() === "PUT") {
+        calBody = route.request().postData();
+      }
+      return sendData({ instal: "5000", instal_num: 5000, amount: "100000" })(
+        route,
+      );
+    });
+    await page.goto(PARAM_URL);
+    await page.getByRole("button", { name: "下一步" }).click();
+    // The A-style cal card, not the type-B insured-amount card.
+    await expect(page.getByPlaceholder("輸入期望保費")).toBeVisible();
+    await expect(page.getByPlaceholder("輸入保額")).toHaveCount(0);
+    await page.getByPlaceholder("輸入期望保費").fill("5000");
+    await expect.poll(() => calBody).toBe("5000");
+    await page.getByRole("button", { name: "生成報表" }).click();
     await expect(page).toHaveURL(
       /\/plans\/unitLinked\/sheet\?planId=p1&sheetId=s1/,
     );
