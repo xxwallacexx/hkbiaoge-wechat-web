@@ -227,12 +227,12 @@ jobs:
           # would hang the job until the 30-minute limit instead of failing fast.
           OK=""
           for i in 1 2 3 4 5; do
-            if curl -fsS --max-time 30 "$URL/healthz"; then OK=1; break; fi
-            echo "healthz attempt $i failed; retrying in 5s"
+            if curl -fsS --max-time 30 "$URL/healthcheck"; then OK=1; break; fi
+            echo "healthcheck attempt $i failed; retrying in 5s"
             sleep 5
           done
           if [ -z "$OK" ]; then
-            echo "::error::/healthz did not respond after 5 attempts"
+            echo "::error::/healthcheck did not respond after 5 attempts"
             exit 1
           fi
           echo

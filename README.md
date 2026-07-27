@@ -63,7 +63,9 @@ The Mini Program mints a short-lived, single-use **code** on our API
 - **Security headers + CSP** (`next.config.mjs`); `X-Powered-By` disabled
 - **Error reporting:** `src/lib/report-error.ts` (+ global handlers) — POSTs to
   `NEXT_PUBLIC_ERROR_REPORT_URL` when set; swap in Sentry later
-- **Health probe:** `GET /healthz` → `{"status":"ok"}` (for Cloud Run)
+- **Health probe:** `GET /healthcheck` → `{"status":"ok"}` (for Cloud Run).
+  Not `/healthz` — Google Frontend intercepts that exact path on `*.run.app`
+  and returns its own 404 before the request reaches the container.
 - **Tests:** Vitest unit tests (auth bridge) + Playwright smoke (`e2e/`)
 
 Still to do for real launch: replace the demo home page, and (optionally) move to
@@ -72,7 +74,7 @@ HttpOnly cookies once `/api` is served same-origin via the nginx proxy.
 ## Deploy (ECS nginx → Cloud Run, per the project plan)
 
 - Build the image (`Dockerfile`) → **Cloud Run `asia-east2` (Hong Kong)**; point
-  the health check at `/healthz`.
+  the health check at `/healthcheck`.
 - **HK/overseas** users → geo-DNS resolves straight to Cloud Run.
 - **Mainland** users → **Aliyun mainland ECS nginx** (`nginx.conf`): caches
   aggressively, serves stale on cross-border blips, and proxies `/api` over the
