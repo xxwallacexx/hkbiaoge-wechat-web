@@ -79,6 +79,37 @@ HttpOnly cookies once `/api` is served same-origin via the nginx proxy.
   same accelerated link.
 - ICP 备案 the domain (mainland audience), HTTPS, host the verify `.txt` at root.
 
+### CI/CD
+
+Merges to `main` build on Cloud Build and deploy to Cloud Run via the `deploy` job
+in `.github/workflows/ci.yml`. Auth is keyless (Workload Identity Federation).
+
+Nothing environment-specific is committed. All config comes from GitHub, under
+_Settings → Secrets and variables → Actions_:
+
+| Kind         | Name                                                                               | Why                                                                                                                                                             |
+| ------------ | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Variable** | `GCP_PROJECT`, `GCP_REGION`, `CR_SERVICE`, `AR_IMAGE`, `WIF_PROVIDER`, `DEPLOY_SA` | Identifiers, not credentials. As secrets they would be redacted from your own build logs while hiding nothing from anyone else — gcloud prints them constantly. |
+| **Variable** | `NEXT_PUBLIC_API_URL`                                                              | `/api` — same-origin, so no CORS preflight.                                                                                                                     |
+| **Secret**   | `API_PROXY_TARGET`                                                                 | The API upstream. Not a credential (it answers `401` unauthenticated), but this repo is public, so a secret keeps it out of world-readable build logs.          |
+
+`cloudbuild.yaml` declares those substitutions with empty defaults and fails fast in
+a `validate` step if CI does not supply them — an empty `_API_PROXY_TARGET` would
+otherwise build a working-looking image whose `/api` calls all 404.
+
+Three things about this setup are load-bearing and easy to break by accident:
+
+- **`NEXT_PUBLIC_API_URL` and `API_PROXY_TARGET` are build-time only.** Next inlines
+  the first into the client bundle and freezes the second into
+  `.next/routes-manifest.json` during `next build`. Setting either as a Cloud Run
+  env var does nothing — changing them means rebuilding the image.
+- **The WIF binding only trusts `refs/heads/main`.** Branch protection on `main` is
+  therefore part of the security boundary, not just hygiene. Deploys from any other
+  branch cannot authenticate, which is intentional.
+- **Never add `deploy` to the required status checks.** It is gated on `push`, so it
+  never reports on a pull request; requiring it would leave `main` permanently
+  unmergeable. Require only `lint`, `unit` and `e2e`.
+
 ## Production checklist (WeChat)
 
 - [ ] Client's Mini Program is a **verified company** account
