@@ -70,7 +70,20 @@ const nextConfig = {
   // /api/*; then no rewrite is added.
   async rewrites() {
     const target = process.env.API_PROXY_TARGET;
-    if (!target) return [];
+    if (!target) {
+      // Deliberately a warning rather than a throw: `next dev`, the CI e2e build,
+      // and the mainland nginx topology all legitimately run without it. But when
+      // it IS an accident the result is nasty — the build succeeds, the site loads,
+      // and every /api call 404s with nothing anywhere to explain why. So make the
+      // choice visible instead of silent. The Dockerfile turns this into a hard
+      // failure, since an image that will actually be deployed always serves /api
+      // itself.
+      console.warn(
+        "\n⚠  API_PROXY_TARGET is not set — no /api/* rewrite will be added.\n" +
+          "   Only correct if something else proxies /api (nginx, or a dev mock).\n",
+      );
+      return [];
+    }
     return [
       {
         source: "/api/:path*",

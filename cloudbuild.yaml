@@ -1,0 +1,65 @@
+# Builds the wechat-web image on Cloud Build (natively linux/amd64, so it works
+# regardless of the developer's laptop architecture).
+#
+# No environment-specific values live in this file — CI supplies them all via
+# --substitutions, sourced from GitHub. That keeps the API upstream out of a public
+# repository. See "CI/CD" in README.md.
+#
+# IMPORTANT: the two --build-arg values below are baked into the image at build
+# time. To point the app at a different API you must REBUILD — redeploying an
+# existing image will not change them. See the ARG block in the Dockerfile.
+
+steps:
+  # Substitutions are textual: an unset one becomes an empty string and the build
+  # would otherwise succeed while quietly producing a broken image. In particular an
+  # empty _API_PROXY_TARGET makes next.config.mjs drop the /api rewrite entirely, so
+  # every API call 404s at runtime with nothing in the build log to explain it.
+  - name: gcr.io/cloud-builders/docker
+    id: validate
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        fail=0
+        for pair in "_IMAGE=${_IMAGE}" "_TAG=${_TAG}" \
+                    "_NEXT_PUBLIC_API_URL=${_NEXT_PUBLIC_API_URL}" \
+                    "_API_PROXY_TARGET=${_API_PROXY_TARGET}"; do
+          name="${pair%%=*}"
+          value="${pair#*=}"
+          if [ -z "$value" ]; then
+            echo "ERROR: $name is empty — CI must pass it via --substitutions"
+            fail=1
+          fi
+        done
+        [ "$fail" -eq 0 ] || exit 1
+        echo "substitutions present"
+
+  - name: gcr.io/cloud-builders/docker
+    id: build
+    args:
+      - build
+      - --build-arg=NEXT_PUBLIC_API_URL=${_NEXT_PUBLIC_API_URL}
+      - --build-arg=API_PROXY_TARGET=${_API_PROXY_TARGET}
+      - --tag=${_IMAGE}:${_TAG}
+      - --tag=${_IMAGE}:latest
+      - .
+
+images:
+  - ${_IMAGE}:${_TAG}
+  - ${_IMAGE}:latest
+
+# Declared so Cloud Build accepts the ${_...} references above. All are intentionally
+# empty: the real values come from CI, never from this file. The validate step turns
+# a missing one into a loud failure instead of a silently broken image.
+substitutions:
+  _IMAGE: ""
+  _TAG: ""
+  _NEXT_PUBLIC_API_URL: ""
+  _API_PROXY_TARGET: ""
+
+options:
+  machineType: E2_HIGHCPU_8
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1200s

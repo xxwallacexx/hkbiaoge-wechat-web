@@ -91,3 +91,156 @@ jobs:
             test-results/
           if-no-files-found: ignore
           retention-days: 14
+
+  # Deploys to Cloud Run (asia-east2) on every merge to main, once all three gates
+  # above are green. Lives in this workflow rather than its own file so `needs:` can
+  # reference those jobs — a separate workflow could not see their results.
+  #
+  # Auth is keyless via Workload Identity Federation; there is no JSON key in GitHub
+  # secrets. The one-time GCP setup and the six repository variables this job reads
+  # are documented under "CI/CD" in README.md.
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [lint, unit, e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # Overrides the workflow-level `contents: read` for this job only. id-token is
+    # what lets the job mint the OIDC assertion that WIF exchanges for a token.
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      PROJECT: ${{ vars.GCP_PROJECT }}
+      REGION: ${{ vars.GCP_REGION }}
+      SERVICE: ${{ vars.CR_SERVICE }}
+      IMAGE: ${{ vars.AR_IMAGE }}
+      WIF_PROVIDER: ${{ vars.WIF_PROVIDER }}
+      DEPLOY_SA: ${{ vars.DEPLOY_SA }}
+      # Build-time app config, kept out of cloudbuild.yaml so the API upstream is
+      # not published in this repository. API_PROXY_TARGET is a *secret* rather than
+      # a variable purely so GitHub masks it in these public build logs — it is not
+      # a credential, and the endpoint rejects unauthenticated calls with a 401.
+      NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+      API_PROXY_TARGET: ${{ secrets.API_PROXY_TARGET }}
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      # An undefined `vars.X` resolves to an empty string rather than failing, so
+      # check explicitly. Without this the first symptom is `--region=""` buried in
+      # a gcloud error that reads like an authentication problem.
+      - name: Check deploy variables are set
+        run: |
+          MISSING=""
+          for V in PROJECT REGION SERVICE IMAGE WIF_PROVIDER DEPLOY_SA NEXT_PUBLIC_API_URL; do
+            [ -n "${!V}" ] || MISSING="$MISSING $V"
+          done
+          if [ -n "$MISSING" ]; then
+            echo "::error::Missing repository variables:$MISSING"
+            echo "::error::Add them under Settings > Secrets and variables > Actions > Variables"
+            exit 1
+          fi
+
+          # A secret, not a variable — so this checks emptiness without echoing it.
+          if [ -z "$API_PROXY_TARGET" ]; then
+            echo "::error::Missing secret API_PROXY_TARGET"
+            echo "::error::Add it under Settings > Secrets and variables > Actions > Secrets"
+            exit 1
+          fi
+          # A comma would split --substitutions into bogus key=value pairs later.
+          case "$API_PROXY_TARGET" in
+            *,*) echo "::error::API_PROXY_TARGET must not contain a comma"; exit 1 ;;
+          esac
+
+          # None of these six legitimately contains whitespace, and the GitHub web
+          # form does not strip a stray trailing space. Left unchecked it survives
+          # the shape check below and then fails as an opaque auth error.
+          for V in PROJECT REGION SERVICE IMAGE WIF_PROVIDER DEPLOY_SA; do
+            case "${!V}" in
+              *[[:space:]]*)
+                echo "::error::$V contains whitespace — re-paste it: '${!V}'"
+                exit 1 ;;
+            esac
+          done
+
+          # Shape checks. These two are long enough to mangle when pasted into the
+          # web UI, and a typo would otherwise surface as an opaque auth failure at
+          # the next step. Safe to echo the value: these are identifiers, not secrets.
+          case "$WIF_PROVIDER" in
+            projects/*/locations/global/workloadIdentityPools/*/providers/*) ;;
+            *) echo "::error::WIF_PROVIDER is malformed: '$WIF_PROVIDER'"; exit 1 ;;
+          esac
+          case "$DEPLOY_SA" in
+            *@*.iam.gserviceaccount.com) ;;
+            *) echo "::error::DEPLOY_SA should be a service-account email: '$DEPLOY_SA'"; exit 1 ;;
+          esac
+
+      - id: auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          project_id: ${{ env.PROJECT }}
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOY_SA }}
+
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
+
+      # Builds natively on amd64. Every substitution is supplied here rather than
+      # defaulted in cloudbuild.yaml, so no environment-specific value is committed
+      # to this repository. Both --build-arg values are baked into the image — see
+      # the ARG block in the Dockerfile.
+      - name: Build on Cloud Build
+        env:
+          TAG: ${{ github.sha }}
+        run: |
+          gcloud builds submit \
+            --config=cloudbuild.yaml \
+            --substitutions="_TAG=${TAG},_IMAGE=${IMAGE},_NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL},_API_PROXY_TARGET=${API_PROXY_TARGET}" \
+            --project="$PROJECT"
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --image="${IMAGE}:${{ github.sha }}" \
+            --region="$REGION" \
+            --platform=managed \
+            --allow-unauthenticated \
+            --port=8080 \
+            --cpu=1 --memory=512Mi \
+            --min-instances=0 --max-instances=10 \
+            --concurrency=80 --timeout=60 --cpu-boost \
+            --project="$PROJECT"
+
+      # A 401 here is the only signal that proves the API_PROXY_TARGET build arg
+      # survived into the image. Anything else means the container is still trying
+      # to reach localhost:4040, which would otherwise ship silently.
+      - name: Smoke test the new revision
+        run: |
+          URL=$(gcloud run services describe "$SERVICE" \
+            --region="$REGION" --project="$PROJECT" --format='value(status.url)')
+          echo "Deployed: $URL"
+
+          # --min-instances=0 means this very first request is guaranteed to be a
+          # cold start, so retry rather than failing a good deploy on a slow boot.
+          # --max-time matters too: bare curl has no timeout, so a wedged container
+          # would hang the job until the 30-minute limit instead of failing fast.
+          OK=""
+          for i in 1 2 3 4 5; do
+            if curl -fsS --max-time 30 "$URL/healthz"; then OK=1; break; fi
+            echo "healthz attempt $i failed; retrying in 5s"
+            sleep 5
+          done
+          if [ -z "$OK" ]; then
+            echo "::error::/healthz did not respond after 5 attempts"
+            exit 1
+          fi
+          echo
+
+          CODE=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 \
+            -X PUT "$URL/api/loginCode/auth")
+          if [ "$CODE" != "401" ]; then
+            echo "::error::/api proxy returned $CODE, expected 401 — the API_PROXY_TARGET build arg did not reach the image"
+            exit 1
+          fi
+          echo "API proxy reached the real backend (401 as expected)."
