@@ -47,7 +47,7 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Localize everything except /api, /healthz, Next internals, and files with an
-  // extension (so the WeChat verification .txt at the root is served as-is).
-  matcher: ["/((?!api|healthz|_next|_vercel|.*\\..*).*)"],
+  // Localize everything except /api, /healthcheck, Next internals, and files with
+  // an extension (so the WeChat verification .txt at the root is served as-is).
+  matcher: ["/((?!api|healthcheck|_next|_vercel|.*\\..*).*)"],
 };
