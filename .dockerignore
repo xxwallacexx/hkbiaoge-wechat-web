@@ -7,3 +7,12 @@ Dockerfile
 .dockerignore
 README.md
 nginx.conf
+cloudbuild.yaml
+
+# Not needed to build the app; keeps the upload to Cloud Build small.
+.github
+.lavish
+e2e
+test-results
+playwright-report
+playwright.config.ts
