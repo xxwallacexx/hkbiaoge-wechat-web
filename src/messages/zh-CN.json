@@ -100,6 +100,14 @@
     "tabMedical": "医疗保险",
     "tabRetirement": "退休保险"
   },
+  "SheetSync": {
+    "title": "资源下载中",
+    "syncing": "产品已开通，请耐心等待资源下载。",
+    "membershipExpired": "会员已过期...",
+    "invalidDestination": "无法打开此产品，请返回产品列表重试。",
+    "error": "加载失败，请稍后再试。",
+    "backToPlans": "返回产品列表"
+  },
   "Unauthorized": {
     "title": "需要登录",
     "description": "请从微信小程序打开此页面以继续。"
