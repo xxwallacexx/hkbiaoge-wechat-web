@@ -3,7 +3,11 @@
  * (PLAN_TABS, PAGE_SIZE, …) lives in `@/lib/plans`.
  */
 
-import type { PlanPaymentDetail, PlanSheetDetail } from "./plan-detail";
+import type {
+  PlanDetail,
+  PlanPaymentDetail,
+  PlanSheetDetail,
+} from "./plan-detail";
 
 /** Embedded company badge on a plan row / in the filter list. */
 export type InsuranceCompanyDetail = {
@@ -32,6 +36,17 @@ export type PlanTab = {
   endpoint: string; // API path (relative to the `/api` baseURL)
   labelKey: string; // i18n key under the `Plans` namespace
   paramPath?: string; // route opened on row tap; only set for ported plan types
+};
+
+/**
+ * A `?destination=` value the sheet-sync gate screen accepts, resolved against the ported
+ * plan tabs: where to hand off once the worksheet is ready, whose list cache that
+ * invalidates, and how to poll this plan type's status. See `@/lib/sheet-sync`.
+ */
+export type SheetSyncTarget = {
+  destination: string; // the tab's `paramPath`
+  tabKey: string; // `PlanTab.key`, i.e. the `["plans", key, …]` query cache
+  getStatus: (planId: string) => Promise<PlanDetail>;
 };
 
 /** Arguments for `usePlansQuery`. */
