@@ -100,6 +100,14 @@
     "tabMedical": "醫療保險",
     "tabRetirement": "退休保險"
   },
+  "SheetSync": {
+    "title": "資源下載中",
+    "syncing": "產品已開通，請耐心等待資源下載。",
+    "membershipExpired": "會員已過期...",
+    "invalidDestination": "無法開啟此產品，請返回產品列表重試。",
+    "error": "載入失敗，請稍後再試。",
+    "backToPlans": "返回產品列表"
+  },
   "Unauthorized": {
     "title": "需要登入",
     "description": "請從微信小程序開啟此頁面以繼續。"

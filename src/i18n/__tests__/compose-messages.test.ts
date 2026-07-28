@@ -27,7 +27,14 @@ const PLAN_GROUPS: Record<string, string[]> = {
 };
 
 const PLANS = Object.keys(PLAN_GROUPS);
-const PASSTHROUGH = ["App", "Error", "Plans", "Brochures", "Unauthorized"];
+const PASSTHROUGH = [
+  "App",
+  "Error",
+  "Plans",
+  "Brochures",
+  "SheetSync",
+  "Unauthorized",
+];
 
 describe("composeMessages", () => {
   for (const [locale, raw] of Object.entries(LOCALES)) {

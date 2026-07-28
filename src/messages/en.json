@@ -100,6 +100,14 @@
     "tabMedical": "Medical",
     "tabRetirement": "Retirement"
   },
+  "SheetSync": {
+    "title": "Preparing your worksheet",
+    "syncing": "The product is activated — please wait while its resources download.",
+    "membershipExpired": "Membership expired…",
+    "invalidDestination": "This product can't be opened. Please go back to the product list and try again.",
+    "error": "Loading failed. Please try again shortly.",
+    "backToPlans": "Back to products"
+  },
   "Unauthorized": {
     "title": "Sign-in required",
     "description": "Please open this page from the WeChat Mini Program to continue."
