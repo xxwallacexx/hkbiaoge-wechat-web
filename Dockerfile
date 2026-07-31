@@ -72,6 +72,44 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# WeChat Mini-Program 业务域名 (business domain) verification file — WeChat fetches
+# https://<domain>/<file> and compares the body to the token before it will accept
+# the domain for web-view. Written HERE rather than committed to public/ so the
+# value is a GitHub variable, not a source change. See "CI/CD" in README.md.
+#
+# Three things make this work, none of them obvious:
+#   1. Writing it AFTER `next build` is fine. Next's standalone server scans
+#      ./public when the process BOOTS, not at build time — setupFsCheck() ->
+#      recursiveReadDir(public) in next/dist/server/lib/router-utils/filesystem.js.
+#      (Which also means it must be on disk before `node server.js` starts; adding
+#      it to a live container would not be picked up.)
+#   2. next-intl leaves it alone. src/proxy.ts's matcher already excludes paths
+#      containing a dot, so /<file>.txt is never redirected to /zh-CN/<file>.txt.
+#   3. This runs before `USER nextjs`, so root can write into the root-owned
+#      public/ dir; the file lands world-readable.
+#
+# Optional — an image with no verification file is still a valid image, and local
+# `docker build` should not need WeChat values. But HALF a pair is always a
+# mistake: it would build clean and the only symptom would be WeChat refusing the
+# domain days later, so that fails loudly.
+ARG WECHAT_VERIFY_FILE=""
+ARG WECHAT_VERIFY_TOKEN=""
+RUN if [ -n "$WECHAT_VERIFY_FILE" ] || [ -n "$WECHAT_VERIFY_TOKEN" ]; then \
+      { [ -n "$WECHAT_VERIFY_FILE" ] && [ -n "$WECHAT_VERIFY_TOKEN" ]; } || { \
+        echo "ERROR: set WECHAT_VERIFY_FILE and WECHAT_VERIFY_TOKEN together, or neither."; \
+        exit 1; }; \
+      case "$WECHAT_VERIFY_FILE" in \
+        .*|*[!A-Za-z0-9._-]*) \
+          echo "ERROR: WECHAT_VERIFY_FILE must be a bare filename (no slashes, no leading dot)."; \
+          echo "       Got: '$WECHAT_VERIFY_FILE'"; \
+          exit 1 ;; \
+      esac; \
+      printf '%s' "$WECHAT_VERIFY_TOKEN" > "public/$WECHAT_VERIFY_FILE"; \
+      echo "baked public/$WECHAT_VERIFY_FILE ($(wc -c < "public/$WECHAT_VERIFY_FILE") bytes, no trailing newline)"; \
+    else \
+      echo "no WeChat verification file baked into this image"; \
+    fi
+
 USER nextjs
 EXPOSE 8080
 CMD ["node", "server.js"]

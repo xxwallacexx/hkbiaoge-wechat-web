@@ -93,13 +93,14 @@ _Settings → Secrets and variables → Actions_:
 | ------------ | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Variable** | `GCP_PROJECT`, `GCP_REGION`, `CR_SERVICE`, `AR_IMAGE`, `WIF_PROVIDER`, `DEPLOY_SA` | Identifiers, not credentials. As secrets they would be redacted from your own build logs while hiding nothing from anyone else — gcloud prints them constantly. |
 | **Variable** | `NEXT_PUBLIC_API_URL`                                                              | `/api` — same-origin, so no CORS preflight.                                                                                                                     |
+| **Variable** | `WECHAT_VERIFY_FILE`, `WECHAT_VERIFY_TOKEN`                                        | Mini-Program 业务域名 verification — see below. Optional, but set them together. Deliberately not secrets: WeChat requires the value to be world-readable.      |
 | **Secret**   | `API_PROXY_TARGET`                                                                 | The API upstream. Not a credential (it answers `401` unauthenticated), but this repo is public, so a secret keeps it out of world-readable build logs.          |
 
 `cloudbuild.yaml` declares those substitutions with empty defaults and fails fast in
 a `validate` step if CI does not supply them — an empty `_API_PROXY_TARGET` would
 otherwise build a working-looking image whose `/api` calls all 404.
 
-Three things about this setup are load-bearing and easy to break by accident:
+Four things about this setup are load-bearing and easy to break by accident:
 
 - **`NEXT_PUBLIC_API_URL` and `API_PROXY_TARGET` are build-time only.** Next inlines
   the first into the client bundle and freezes the second into
@@ -111,11 +112,44 @@ Three things about this setup are load-bearing and easy to break by accident:
 - **Never add `deploy` to the required status checks.** It is gated on `push`, so it
   never reports on a pull request; requiring it would leave `main` permanently
   unmergeable. Require only `lint`, `unit` and `e2e`.
+- **`deploy` also accepts `workflow_dispatch` on `main`.** That is what makes a
+  variable-only change deployable without a commit — the rotation path for
+  `WECHAT_VERIFY_TOKEN`. The ref is still pinned to `main`, so this widens how a
+  deploy is triggered, not what can be deployed.
+
+### WeChat business-domain (业务域名) verification file
+
+WeChat will only whitelist a domain for `web-view` after fetching a file from its
+root and matching the body exactly. The Mini Program console issues both the
+filename and the token; put them in the two repository variables above and the
+Dockerfile writes `public/$WECHAT_VERIFY_FILE` into the image.
+
+It lives in the image rather than in `public/` in git so the token can be rotated
+from GitHub. To rotate: edit the variable, then _Actions → CI → Run workflow_ on
+`main`. The deploy job's smoke test refetches the URL and fails the deploy if the
+body does not match, so a typo cannot ship silently.
+
+Two non-obvious things make this work, and both are easy to undo:
+
+- The file is written in the **runner** stage, after `next build`. That is safe
+  because Next's standalone server scans `public/` when the process **boots**, not
+  at build time (`setupFsCheck()` → `recursiveReadDir(public)`). It also means the
+  file must be in the image — dropping it onto a running container does nothing.
+- `src/proxy.ts`'s matcher excludes paths containing a dot, so next-intl never
+  redirects `/<file>.txt` to `/zh-CN/<file>.txt`. Narrowing that matcher would
+  break domain verification with no other visible symptom.
+
+Note that `nginx.conf`'s catch-all `location /` already proxies the file through to
+Cloud Run, so the mainland ECS box needs no second copy.
 
 ## Production checklist (WeChat)
 
-- [ ] Client's Mini Program is a **verified company** account
-- [ ] Domain **ICP 备案** complete (mainland audience)
-- [ ] Domain added to the Mini Program **业务域名 whitelist**
-- [ ] WeChat verify `.txt` reachable at `https://YOUR-DOMAIN/MP_verify_xxx.txt`
+- [ ] Client's Mini Program is a **verified company** account (个人 and 海外 accounts
+      cannot use `web-view` at all)
+- [ ] Domain **ICP 备案** complete — required for 业务域名, and a Cloud Run
+      `*.run.app` URL cannot be filed, so this needs the real domain
+- [ ] Domain mapped to the Cloud Run service, then added to the Mini Program
+      **业务域名 whitelist**
+- [ ] `WECHAT_VERIFY_FILE` / `WECHAT_VERIFY_TOKEN` set, and the deploy smoke test
+      green — verify by hand with `curl https://YOUR-DOMAIN/$WECHAT_VERIFY_FILE`
 - [ ] Tested on iOS WeChat **and** low-end Android WeChat (X5) — especially the Dialog

@@ -5,9 +5,10 @@
 # --substitutions, sourced from GitHub. That keeps the API upstream out of a public
 # repository. See "CI/CD" in README.md.
 #
-# IMPORTANT: the two --build-arg values below are baked into the image at build
-# time. To point the app at a different API you must REBUILD — redeploying an
-# existing image will not change them. See the ARG block in the Dockerfile.
+# IMPORTANT: every --build-arg value below is baked into the image at build time.
+# To point the app at a different API, or to change the WeChat verification file,
+# you must REBUILD — redeploying an existing image will not change them. See the
+# ARG blocks in the Dockerfile.
 
 steps:
   # Substitutions are textual: an unset one becomes an empty string and the build
@@ -41,6 +42,8 @@ steps:
       - build
       - --build-arg=NEXT_PUBLIC_API_URL=${_NEXT_PUBLIC_API_URL}
       - --build-arg=API_PROXY_TARGET=${_API_PROXY_TARGET}
+      - --build-arg=WECHAT_VERIFY_FILE=${_WECHAT_VERIFY_FILE}
+      - --build-arg=WECHAT_VERIFY_TOKEN=${_WECHAT_VERIFY_TOKEN}
       - --tag=${_IMAGE}:${_TAG}
       - --tag=${_IMAGE}:latest
       - .
@@ -57,6 +60,13 @@ substitutions:
   _TAG: ""
   _NEXT_PUBLIC_API_URL: ""
   _API_PROXY_TARGET: ""
+  # WeChat 业务域名 verification file, baked into public/ by the Dockerfile. Unlike
+  # the four above these are deliberately NOT in the validate loop: an image with
+  # no verification file is a legitimate image (a local build, or a revision built
+  # before the domain existed). The Dockerfile still rejects half a pair, and
+  # ci.yml asserts the deployed URL actually returns the token.
+  _WECHAT_VERIFY_FILE: ""
+  _WECHAT_VERIFY_TOKEN: ""
 
 options:
   machineType: E2_HIGHCPU_8

@@ -97,10 +97,18 @@ jobs:
   # reference those jobs — a separate workflow could not see their results.
   #
   # Auth is keyless via Workload Identity Federation; there is no JSON key in GitHub
-  # secrets. The one-time GCP setup and the six repository variables this job reads
-  # are documented under "CI/CD" in README.md.
+  # secrets. The one-time GCP setup and the repository variables this job reads are
+  # documented under "CI/CD" in README.md.
+  #
+  # workflow_dispatch is accepted as well as push so that a value which lives only
+  # in a repository variable — the WeChat verification token — can be rotated by
+  # editing the variable and re-running this workflow, with no commit. The ref is
+  # still pinned to main, so this widens *how* a deploy is triggered, not *what*
+  # can be deployed: the WIF binding only trusts refs/heads/main either way.
   deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: >-
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      && github.ref == 'refs/heads/main'
     needs: [lint, unit, e2e]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -124,6 +132,13 @@ jobs:
       # a credential, and the endpoint rejects unauthenticated calls with a 401.
       NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
       API_PROXY_TARGET: ${{ secrets.API_PROXY_TARGET }}
+      # WeChat 业务域名 verification file, baked into public/ by the Dockerfile.
+      # Variables rather than secrets, on purpose: WeChat requires this file to be
+      # world-readable at https://<domain>/<file>, so masking the value here would
+      # hide nothing from anyone while making a failed verification harder to
+      # debug. Same reasoning as the six identifiers above.
+      WECHAT_VERIFY_FILE: ${{ vars.WECHAT_VERIFY_FILE }}
+      WECHAT_VERIFY_TOKEN: ${{ vars.WECHAT_VERIFY_TOKEN }}
 
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -152,6 +167,28 @@ jobs:
           # A comma would split --substitutions into bogus key=value pairs later.
           case "$API_PROXY_TARGET" in
             *,*) echo "::error::API_PROXY_TARGET must not contain a comma"; exit 1 ;;
+          esac
+
+          # The WeChat pair is optional — a revision with no verification file is
+          # legitimate — but half a pair is always a mistake. Unchecked, the build
+          # succeeds and the only symptom is WeChat refusing the business domain
+          # days later, with nothing in this log to explain it.
+          if [ -n "$WECHAT_VERIFY_FILE$WECHAT_VERIFY_TOKEN" ] \
+             && { [ -z "$WECHAT_VERIFY_FILE" ] || [ -z "$WECHAT_VERIFY_TOKEN" ]; }; then
+            echo "::error::Set both WECHAT_VERIFY_FILE and WECHAT_VERIFY_TOKEN, or neither"
+            exit 1
+          fi
+          case "$WECHAT_VERIFY_FILE$WECHAT_VERIFY_TOKEN" in
+            *,*) echo "::error::WeChat verify values must not contain a comma"; exit 1 ;;
+          esac
+          # WeChat serves the file from the domain root, so a path separator or a
+          # leading dot cannot be what was meant. The Dockerfile rejects these too;
+          # catching it here saves a full Cloud Build round-trip.
+          case "$WECHAT_VERIFY_FILE" in
+            "") ;;
+            .*|*[!A-Za-z0-9._-]*)
+              echo "::error::WECHAT_VERIFY_FILE must be a bare filename: '$WECHAT_VERIFY_FILE'"
+              exit 1 ;;
           esac
 
           # None of these six legitimately contains whitespace, and the GitHub web
@@ -196,7 +233,7 @@ jobs:
         run: |
           gcloud builds submit \
             --config=cloudbuild.yaml \
-            --substitutions="_TAG=${TAG},_IMAGE=${IMAGE},_NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL},_API_PROXY_TARGET=${API_PROXY_TARGET}" \
+            --substitutions="_TAG=${TAG},_IMAGE=${IMAGE},_NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL},_API_PROXY_TARGET=${API_PROXY_TARGET},_WECHAT_VERIFY_FILE=${WECHAT_VERIFY_FILE},_WECHAT_VERIFY_TOKEN=${WECHAT_VERIFY_TOKEN}" \
             --project="$PROJECT"
 
       - name: Deploy to Cloud Run
@@ -244,3 +281,21 @@ jobs:
             exit 1
           fi
           echo "API proxy reached the real backend (401 as expected)."
+
+          # Nothing earlier in CI can see this file: the e2e job runs `next build`,
+          # never `docker build`, so it does not exist during Playwright. This
+          # request is the only proof the build args survived into the image — and
+          # a 404 or a mismatched body here is exactly what makes WeChat refuse the
+          # business domain, so fail the deploy rather than discover it in the
+          # console. $(...) strips trailing newlines, so this is newline-tolerant;
+          # the Dockerfile is what guarantees the exact bytes.
+          if [ -n "$WECHAT_VERIFY_FILE" ]; then
+            BODY=$(curl -fsS --max-time 30 "$URL/$WECHAT_VERIFY_FILE" || echo "__FETCH_FAILED__")
+            if [ "$BODY" != "$WECHAT_VERIFY_TOKEN" ]; then
+              echo "::error::$URL/$WECHAT_VERIFY_FILE did not return the expected token"
+              exit 1
+            fi
+            echo "WeChat verification file OK at $URL/$WECHAT_VERIFY_FILE"
+          else
+            echo "::warning::No WECHAT_VERIFY_FILE variable — this revision serves no WeChat verification file"
+          fi
