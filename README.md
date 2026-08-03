@@ -54,6 +54,13 @@ The Mini Program mints a short-lived, single-use **code** on our API
 - **Embed URL + params:** `/{locale}?code=...&route=...`
 - **Verify file:** you serve the WeChat domain-verification `.txt` at the site
   root; the client registers + whitelists the domain.
+- **PDF hand-off:** a `<web-view>` can't call `wx.openDocument`, so tapping a PDF
+  (產品單頁 / 優惠推廣) navigates to a **native page the client owns** —
+  `/pages/pdf/index?url=...&name=...`, each param `encodeURIComponent`-encoded once.
+  They must also add the OSS host to their **downloadFile 合法域名** list. The full
+  spec, with a copy-pasteable page, is in
+  [`docs/mini-program-pdf-page.md`](docs/mini-program-pdf-page.md); the route lives in
+  one constant (`PDF_VIEWER_PAGE`, `src/lib/pdf-viewer.ts`).
 
 ## Production baseline (included)
 
@@ -150,6 +157,10 @@ Cloud Run, so the mainland ECS box needs no second copy.
       `*.run.app` URL cannot be filed, so this needs the real domain
 - [ ] Domain mapped to the Cloud Run service, then added to the Mini Program
       **业务域名 whitelist**
+- [ ] OSS host on the Mini Program's **downloadFile 合法域名** list, and their PDF page
+      built + its real route confirmed against `PDF_VIEWER_PAGE` — until then, tapping
+      a brochure or promotion does nothing inside WeChat
+      (see [`docs/mini-program-pdf-page.md`](docs/mini-program-pdf-page.md))
 - [ ] `WECHAT_VERIFY_FILE` / `WECHAT_VERIFY_TOKEN` set, and the deploy smoke test
       green — verify by hand with `curl https://YOUR-DOMAIN/$WECHAT_VERIFY_FILE`
 - [ ] Tested on iOS WeChat **and** low-end Android WeChat (X5) — especially the Dialog

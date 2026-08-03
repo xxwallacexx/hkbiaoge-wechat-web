@@ -18,10 +18,18 @@ import { wechat } from "@/lib/wechat";
  */
 export const PDF_VIEWER_PAGE = "/pages/pdf/index";
 
-/** The native viewer page url for one PDF. Exported so it can be asserted in tests. */
+/**
+ * The native viewer page url for one PDF. Exported so it can be asserted in tests.
+ *
+ * Both params are encodeURIComponent-encoded exactly once — see docs/mini-program-pdf-page.md,
+ * which is the contract the client's page implements against. NOT `URLSearchParams`: that
+ * encodes a space as `+`, and `decodeURIComponent` does not turn `+` back into a space, so a
+ * PDF whose url contains a space would be requested under a different OSS key (404) and its
+ * title would render with a literal `+`.
+ */
 export function pdfViewerUrl(url: string, name: string): string {
-  const params = new URLSearchParams({ url, name });
-  return `${PDF_VIEWER_PAGE}?${params.toString()}`;
+  const query = `url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
+  return `${PDF_VIEWER_PAGE}?${query}`;
 }
 
 /**
