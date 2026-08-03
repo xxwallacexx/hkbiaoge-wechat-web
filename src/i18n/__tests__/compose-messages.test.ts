@@ -32,6 +32,7 @@ const PASSTHROUGH = [
   "Error",
   "Plans",
   "Brochures",
+  "Promotions",
   "SheetSync",
   "Unauthorized",
 ];

@@ -6,8 +6,10 @@ import { routing } from "./i18n/routing";
 const intlMiddleware = createMiddleware(routing);
 
 // Locale-stripped paths served from the (protected) route group. Route groups are not
-// part of the URL, so we guard the real path(s).
-const PROTECTED_PATHS = ["/plans"];
+// part of the URL, so we guard the real path(s). Every screen under (protected) belongs
+// here: their queries are gated on a token, so an unguarded one would render a
+// permanently empty list instead of redirecting to /unauthorized.
+const PROTECTED_PATHS = ["/plans", "/brochures", "/promotions"];
 
 const locales = routing.locales as readonly string[];
 

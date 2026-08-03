@@ -100,6 +100,13 @@
     "tabMedical": "Medical",
     "tabRetirement": "Retirement"
   },
+  "Promotions": {
+    "title": "Promotions",
+    "filter": "Filter",
+    "chooseCompany": "Select insurance company",
+    "empty": "No promotions found",
+    "error": "Failed to load promotions"
+  },
   "SheetSync": {
     "title": "Preparing your worksheet",
     "syncing": "The product is activated — please wait while its resources download.",
