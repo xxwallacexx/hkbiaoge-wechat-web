@@ -107,6 +107,15 @@
     "empty": "暫無優惠推廣",
     "error": "載入優惠推廣失敗"
   },
+  "InsuranceCompanies": {
+    "title": "保險公司",
+    "website": "網頁",
+    "fulfillmentRatio": "達成率",
+    "empty": "暫無保險公司",
+    "error": "載入保險公司失敗",
+    "linkCopied": "連結已複製，請在瀏覽器中開啟",
+    "linkFailed": "無法開啟連結"
+  },
   "SheetSync": {
     "title": "資源下載中",
     "syncing": "產品已開通，請耐心等待資源下載。",

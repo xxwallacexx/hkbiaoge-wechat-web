@@ -107,6 +107,15 @@
     "empty": "暂无优惠推广",
     "error": "加载优惠推广失败"
   },
+  "InsuranceCompanies": {
+    "title": "保险公司",
+    "website": "网页",
+    "fulfillmentRatio": "达成率",
+    "empty": "暂无保险公司",
+    "error": "加载保险公司失败",
+    "linkCopied": "链接已复制，请在浏览器中打开",
+    "linkFailed": "无法打开链接"
+  },
   "SheetSync": {
     "title": "资源下载中",
     "syncing": "产品已开通，请耐心等待资源下载。",

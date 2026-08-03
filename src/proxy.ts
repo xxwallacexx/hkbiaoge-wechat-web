@@ -9,7 +9,12 @@ const intlMiddleware = createMiddleware(routing);
 // part of the URL, so we guard the real path(s). Every screen under (protected) belongs
 // here: their queries are gated on a token, so an unguarded one would render a
 // permanently empty list instead of redirecting to /unauthorized.
-const PROTECTED_PATHS = ["/plans", "/brochures", "/promotions"];
+const PROTECTED_PATHS = [
+  "/plans",
+  "/brochures",
+  "/promotions",
+  "/insuranceCompanies",
+];
 
 const locales = routing.locales as readonly string[];
 
