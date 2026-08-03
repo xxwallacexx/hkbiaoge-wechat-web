@@ -9,15 +9,8 @@ import { useInView } from "@/hooks/use-in-view";
 import { useMiniProgram } from "@/hooks/use-mini-program";
 import { useRouter } from "@/i18n/navigation";
 import { DEFAULT_BROCHURE_TAB, resolveBrochureTab } from "@/lib/brochures";
-import { wechat } from "@/lib/wechat";
+import { openPdf } from "@/lib/pdf-viewer";
 import type { Brochure } from "@/types";
-
-/**
- * The client-owned native Mini Program page that downloads + displays a PDF (it runs
- * `wx.downloadFile` then `wx.openDocument` — a web-view cannot open documents itself). It
- * receives the PDF `url` (+ `name`) as query params. Set this to the client's actual page route.
- */
-const BROCHURE_PDF_PAGE = "/pages/pdf/index";
 
 /**
  * State, URL sync, and data wiring for the brochures screen: derives the active category /
@@ -78,19 +71,13 @@ export function useBrochuresScreen() {
     }
   }, [inView, query.hasNextPage, query.isFetchingNextPage, query]);
 
-  // Open a brochure's PDF. A Mini Program web-view can't open documents itself, so inside one we
-  // hand the PDF url to the client's native viewer page via the bridge (it runs wx.downloadFile +
-  // wx.openDocument). Outside the Mini Program (a plain browser) open the PDF directly.
+  // Open a brochure's PDF — the client's native viewer page inside the Mini Program, a new tab
+  // outside it. See lib/pdf-viewer.ts; the promotions list uses the same hand-off.
   function onBrochurePress(brochure: Brochure) {
-    if (inMiniProgram) {
-      const params = new URLSearchParams({
-        url: brochure.path,
-        name: brochure.name,
-      });
-      wechat.navigateTo(`${BROCHURE_PDF_PAGE}?${params.toString()}`);
-      return;
-    }
-    window.open(brochure.path, "_blank", "noopener,noreferrer");
+    openPdf(
+      { url: brochure.path, name: brochure.name },
+      Boolean(inMiniProgram),
+    );
   }
 
   return {

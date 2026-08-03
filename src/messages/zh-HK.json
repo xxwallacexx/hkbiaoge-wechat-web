@@ -100,6 +100,13 @@
     "tabMedical": "醫療保險",
     "tabRetirement": "退休保險"
   },
+  "Promotions": {
+    "title": "優惠推廣",
+    "filter": "篩選",
+    "chooseCompany": "選擇保險公司",
+    "empty": "暫無優惠推廣",
+    "error": "載入優惠推廣失敗"
+  },
   "SheetSync": {
     "title": "資源下載中",
     "syncing": "產品已開通，請耐心等待資源下載。",

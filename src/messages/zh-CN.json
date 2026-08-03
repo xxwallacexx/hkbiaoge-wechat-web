@@ -100,6 +100,13 @@
     "tabMedical": "医疗保险",
     "tabRetirement": "退休保险"
   },
+  "Promotions": {
+    "title": "优惠推广",
+    "filter": "筛选",
+    "chooseCompany": "选择保险公司",
+    "empty": "暂无优惠推广",
+    "error": "加载优惠推广失败"
+  },
   "SheetSync": {
     "title": "资源下载中",
     "syncing": "产品已开通，请耐心等待资源下载。",
