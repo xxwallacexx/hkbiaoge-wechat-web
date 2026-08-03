@@ -9,12 +9,18 @@ import type {
   PlanSheetDetail,
 } from "./plan-detail";
 
-/** Embedded company badge on a plan row / in the filter list. */
+/**
+ * An insurance company, as returned by `GET /insuranceCompany` and embedded on a plan row.
+ * The filter sheets only need the label + colour; the companies screen also uses the two
+ * link fields, both of which the API declares optional.
+ */
 export type InsuranceCompanyDetail = {
   _id: string;
   name: string; // badge label, e.g. 友記 / 保記
   realName: string;
   bg: string; // badge background color (CSS color)
+  officialWebsiteUrl?: string | null;
+  fulfillmentRatioUrl?: string | null;
 };
 
 /** One row in the plans list response (`{ data: PlanOverview[] }`). */

@@ -33,6 +33,7 @@ const PASSTHROUGH = [
   "Plans",
   "Brochures",
   "Promotions",
+  "InsuranceCompanies",
   "SheetSync",
   "Unauthorized",
 ];
