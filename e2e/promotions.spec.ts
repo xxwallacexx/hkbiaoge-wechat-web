@@ -159,4 +159,37 @@ test.describe("/promotions", () => {
     await popup.waitForLoadState();
     expect(popup.url()).toBe("https://cdn.example.com/1.pdf");
   });
+
+  // The stored url points at the OSS bucket's shared host, which can never be a WeChat
+  // 业务域名; it has to come out on the custom domain aliased onto that bucket. See
+  // src/lib/oss.ts.
+  test("rewrites an OSS bucket url onto the custom domain", async ({
+    page,
+    context,
+  }) => {
+    await authenticate(page);
+    await page.route(
+      /\/api\/promotion(\?|$)/,
+      sendData([
+        {
+          ...promotion("1", "首季保費折扣優惠"),
+          path: "https://chartermax-dev.oss-cn-hongkong.aliyuncs.com/assets/1.pdf",
+        },
+      ]),
+    );
+    // Stub the alias on the context so the popup's own navigation resolves and its final
+    // url can be asserted. The bucket host is deliberately NOT stubbed: a request there
+    // would mean the rewrite did not happen.
+    await context.route(/oss\.hkbiaoge\.com/, (route) =>
+      route.fulfill({ status: 200, contentType: "text/plain", body: "%PDF-" }),
+    );
+    await page.goto("/zh-HK/promotions");
+
+    const [popup] = await Promise.all([
+      context.waitForEvent("page"),
+      page.getByRole("button", { name: /首季保費折扣優惠/ }).click(),
+    ]);
+    await popup.waitForLoadState();
+    expect(popup.url()).toBe("https://oss.hkbiaoge.com/assets/1.pdf");
+  });
 });
