@@ -48,13 +48,9 @@ export function usePromotionsScreen() {
     }
   }, [inView, query.hasNextPage, query.isFetchingNextPage, query]);
 
-  /**
-   * Row tap: open the flyer PDF. There is no detail route — the stored OSS url is rewritten
-   * onto the custom domain and navigated to, plus posted to the Mini Program inside one. See
-   * lib/pdf-viewer.ts; the brochures list uses the same hand-off.
-   */
+  /** Row tap: open the flyer PDF. There is no detail route — see lib/pdf-viewer.ts. */
   function onPromotionPress(promotion: Promotion) {
-    void openPdf(
+    openPdf(
       { url: promotion.path, name: promotion.name },
       Boolean(inMiniProgram),
     );

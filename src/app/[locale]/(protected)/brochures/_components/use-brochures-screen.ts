@@ -71,11 +71,10 @@ export function useBrochuresScreen() {
     }
   }, [inView, query.hasNextPage, query.isFetchingNextPage, query]);
 
-  // Open a brochure's PDF: the stored OSS url is rewritten onto the custom domain and
-  // navigated to, and inside a Mini Program the url + name are also posted over the bridge.
-  // See lib/pdf-viewer.ts; the promotions list uses the same hand-off.
+  // Open a brochure's PDF — the client's native viewer page inside the Mini Program, a new tab
+  // outside it. See lib/pdf-viewer.ts; the promotions list uses the same hand-off.
   function onBrochurePress(brochure: Brochure) {
-    void openPdf(
+    openPdf(
       { url: brochure.path, name: brochure.name },
       Boolean(inMiniProgram),
     );
