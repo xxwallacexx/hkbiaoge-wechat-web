@@ -1,94 +1,109 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { navigation, openPdf, pdfMessage } from "@/lib/pdf-viewer";
+import { openPdf, PDF_VIEWER_PAGE, pdfViewerUrl } from "@/lib/pdf-viewer";
 import { wechat } from "@/lib/wechat";
 
 const BUCKET_URL =
   "https://chartermax-dev.oss-cn-hongkong.aliyuncs.com/assets/a.pdf";
 const ALIAS_URL = "https://oss.hkbiaoge.com/assets/a.pdf";
 
-/** Stub every exit from the page: the bridge, the new tab, and same-window navigation. */
-function stubExits() {
-  return {
-    postMessage: vi.spyOn(wechat, "postMessage").mockResolvedValue(undefined),
-    open: vi.spyOn(window, "open").mockReturnValue(null),
-    assign: vi.spyOn(navigation, "assign").mockImplementation(() => {}),
-  };
-}
-
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("pdfMessage", () => {
-  it("carries the url and name under a discriminated type", () => {
-    expect(pdfMessage(ALIAS_URL, "首季優惠")).toEqual({
-      type: "openPdf",
-      url: ALIAS_URL,
-      name: "首季優惠",
-    });
+describe("pdfViewerUrl", () => {
+  it("encodes the url and name as query params", () => {
+    expect(pdfViewerUrl("https://cdn.example.com/a.pdf", "首季優惠")).toBe(
+      `${PDF_VIEWER_PAGE}?url=https%3A%2F%2Fcdn.example.com%2Fa.pdf&name=%E9%A6%96%E5%AD%A3%E5%84%AA%E6%83%A0`,
+    );
+  });
+
+  // A space must survive as %20, not `+`: the Mini Program decodes the query with
+  // decodeURIComponent, which leaves `+` alone — so `+` would request a different OSS
+  // object key and render a literal `+` in the title.
+  it("survives one decodeURIComponent when the url or name contains a space", () => {
+    const url = "https://cdn.example.com/promotions/2026 Q1.pdf";
+    const name = "AIA 首季優惠";
+
+    const built = pdfViewerUrl(url, name);
+    expect(built).toContain("2026%20Q1.pdf");
+    expect(built).not.toContain("+");
+
+    const params = built.slice(built.indexOf("?") + 1).split("&");
+    const decode = (key: string) =>
+      decodeURIComponent(
+        params.find((p) => p.startsWith(`${key}=`))!.slice(key.length + 1),
+      );
+    expect(decode("url")).toBe(url);
+    expect(decode("name")).toBe(name);
+  });
+
+  // Characters that are structural in a query string must not leak out of their param —
+  // a signed OSS url carries its own `?`, `&`, `=`, `+` and `%`.
+  it("keeps a url's own query string inside the url param", () => {
+    const url = "https://cdn.example.com/a.pdf?Expires=1&Signature=x+y/z%3D";
+
+    const built = pdfViewerUrl(url, "n");
+    const params = built.slice(built.indexOf("?") + 1).split("&");
+
+    expect(params).toHaveLength(2); // url=… and name=…, nothing split off
+    expect(decodeURIComponent(params[0].slice("url=".length))).toBe(url);
   });
 });
 
 describe("openPdf", () => {
-  it("navigates to the PDF and posts it to the Mini Program inside one", async () => {
-    const { postMessage, assign, open } = stubExits();
+  it("hands the pdf to the native viewer page inside a Mini Program", () => {
+    const navigateTo = vi
+      .spyOn(wechat, "navigateTo")
+      .mockResolvedValue(undefined);
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
 
-    await openPdf({ url: BUCKET_URL, name: "優惠" }, true);
+    openPdf({ url: "https://cdn.example.com/a.pdf", name: "優惠" }, true);
 
-    expect(postMessage).toHaveBeenCalledWith(pdfMessage(ALIAS_URL, "優惠"));
-    expect(assign).toHaveBeenCalledWith(ALIAS_URL);
-    // A web-view has no tabs to open.
+    expect(navigateTo).toHaveBeenCalledWith(
+      pdfViewerUrl("https://cdn.example.com/a.pdf", "優惠"),
+    );
     expect(open).not.toHaveBeenCalled();
   });
 
-  // WeChat only flushes buffered messages when the web-view is destroyed or navigated back
-  // from, so posting after `assign` could be dropped along with the document.
-  it("posts before it navigates away", async () => {
-    const order: string[] = [];
-    vi.spyOn(wechat, "postMessage").mockImplementation(async () => {
-      order.push("post");
-    });
-    vi.spyOn(navigation, "assign").mockImplementation(() => {
-      order.push("assign");
-    });
+  it("opens a new tab outside a Mini Program", () => {
+    const navigateTo = vi
+      .spyOn(wechat, "navigateTo")
+      .mockResolvedValue(undefined);
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
 
-    await openPdf({ url: BUCKET_URL, name: "優惠" }, true);
+    openPdf({ url: "https://cdn.example.com/a.pdf", name: "優惠" }, false);
 
-    expect(order).toEqual(["post", "assign"]);
+    expect(open).toHaveBeenCalledWith(
+      "https://cdn.example.com/a.pdf",
+      "_blank",
+      "noopener,noreferrer",
+    );
+    expect(navigateTo).not.toHaveBeenCalled();
   });
 
-  it("opens a new tab outside a Mini Program, and posts nothing", async () => {
-    const { postMessage, assign, open } = stubExits();
+  // The native page only ever sees the custom domain, so that is the single host the client
+  // has to put on their downloadFile 合法域名 list. See lib/oss.ts.
+  it("hands the native page the rewritten host, not the bucket host", () => {
+    const navigateTo = vi
+      .spyOn(wechat, "navigateTo")
+      .mockResolvedValue(undefined);
 
-    await openPdf({ url: BUCKET_URL, name: "優惠" }, false);
+    openPdf({ url: BUCKET_URL, name: "優惠" }, true);
+
+    expect(navigateTo).toHaveBeenCalledWith(pdfViewerUrl(ALIAS_URL, "優惠"));
+    expect(navigateTo.mock.calls[0][0]).not.toContain("aliyuncs");
+  });
+
+  it("opens the rewritten url in the new tab too", () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+
+    openPdf({ url: BUCKET_URL, name: "優惠" }, false);
 
     expect(open).toHaveBeenCalledWith(
       ALIAS_URL,
       "_blank",
       "noopener,noreferrer",
     );
-    expect(postMessage).not.toHaveBeenCalled();
-    expect(assign).not.toHaveBeenCalled();
-  });
-
-  // The new tab has to be requested while the click is still the current task, or the browser
-  // treats it as an unsolicited popup and blocks it.
-  it("opens the new tab synchronously, before awaiting", () => {
-    const { open } = stubExits();
-
-    void openPdf({ url: BUCKET_URL, name: "優惠" }, false);
-
-    expect(open).toHaveBeenCalledTimes(1);
-  });
-
-  it("passes a url on a host with no alias through unchanged", async () => {
-    const { assign, postMessage } = stubExits();
-    const url = "https://cdn.example.com/a.pdf";
-
-    await openPdf({ url, name: "優惠" }, true);
-
-    expect(assign).toHaveBeenCalledWith(url);
-    expect(postMessage).toHaveBeenCalledWith(pdfMessage(url, "優惠"));
   });
 });
