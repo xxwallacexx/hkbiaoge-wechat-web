@@ -19,6 +19,17 @@ export type CookieOptions = {
 /** Extra context attached to a captured error (lib/report-error.ts). */
 export type ErrorContext = Record<string, unknown>;
 
+/**
+ * What the site posts to the Mini Program when the user opens a document (lib/pdf-viewer.ts).
+ * `type` is a discriminator: WeChat hands its `bindmessage` handler every buffered message at
+ * once, so the Mini Program has to tell ours apart from any other payload.
+ */
+export type PdfMessage = {
+  type: "openPdf";
+  url: string; // absolute https url of the PDF, already on the custom OSS domain
+  name: string; // the document's display title
+};
+
 /** The `wx.miniProgram` bridge surface available inside a Mini Program web-view. */
 export type WxMiniProgram = {
   navigateTo: (opts: { url: string }) => void;
