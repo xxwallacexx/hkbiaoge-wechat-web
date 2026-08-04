@@ -21,7 +21,9 @@ const csp = [
   // 'unsafe-inline'/'unsafe-eval' are needed without a nonce setup — tighten later.
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://res.wx.qq.com",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https://*.oss-cn-hongkong.aliyuncs.com",
+  // Both the OSS bucket host and the custom domain aliased onto it (see src/lib/oss.ts) —
+  // stored urls still point at the bucket, rewritten ones at the alias.
+  "img-src 'self' data: https://*.oss-cn-hongkong.aliyuncs.com https://oss.hkbiaoge.com",
   `connect-src 'self' https://res.wx.qq.com${apiOrigin ? ` ${apiOrigin}` : ""}`,
   "font-src 'self' data:",
   "frame-ancestors 'self'",
@@ -56,9 +58,11 @@ const nextConfig = {
   output: "standalone",
   poweredByHeader: false,
   images: {
-    // HKBiaoge assets live on Alibaba OSS (Hong Kong region).
+    // HKBiaoge assets live on Alibaba OSS (Hong Kong region), reachable either on the
+    // bucket host or on the custom domain aliased onto it (see src/lib/oss.ts).
     remotePatterns: [
       { protocol: "https", hostname: "*.oss-cn-hongkong.aliyuncs.com" },
+      { protocol: "https", hostname: "oss.hkbiaoge.com" },
     ],
   },
   async headers() {

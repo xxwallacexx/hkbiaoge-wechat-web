@@ -22,7 +22,7 @@ wx.miniProgram.navigateTo({
 |                |                                                                                                            |
 | -------------- | ---------------------------------------------------------------------------------------------------------- |
 | **Page route** | `/pages/pdf/index`                                                                                         |
-| **`url`**      | Absolute `https://` link to the PDF, on the Alibaba OSS bucket                                             |
+| **`url`**      | Absolute `https://` link to the PDF, always on `oss.hkbiaoge.com` (see §2)                                 |
 | **`name`**     | Human title of the document, e.g. `2026年首季保費折扣優惠`. Used only for the filename shown in the viewer |
 | **Encoding**   | Each value is `encodeURIComponent`-encoded **exactly once**. A space is `%20`, never `+`                   |
 | **Navigation** | Always `navigateTo` (see §4)                                                                               |
@@ -30,7 +30,7 @@ wx.miniProgram.navigateTo({
 A real example of what arrives:
 
 ```
-/pages/pdf/index?url=https%3A%2F%2Fexample.oss-cn-hongkong.aliyuncs.com%2Fpromotions%2F2026%20Q1.pdf&name=AIA%20%E9%A6%96%E5%AD%A3%E5%84%AA%E6%83%A0
+/pages/pdf/index?url=https%3A%2F%2Foss.hkbiaoge.com%2Fpromotions%2F2026%20Q1.pdf&name=AIA%20%E9%A6%96%E5%AD%A3%E5%84%AA%E6%83%A0
 ```
 
 The source of truth on our side is `src/lib/pdf-viewer.ts` (`pdfViewerUrl`).
@@ -39,12 +39,17 @@ The source of truth on our side is `src/lib/pdf-viewer.ts` (`pdfViewerUrl`).
 
 ## 2. Console configuration (do this first)
 
-The OSS host must be on the Mini Program's **downloadFile 合法域名** allowlist, or
+The PDF's host must be on the Mini Program's **downloadFile 合法域名** allowlist, or
 `wx.downloadFile` fails before it starts:
 
 > 微信公众平台 → 开发管理 → 开发设置 → 服务器域名 → **downloadFile 合法域名**
 
-Add the bucket host, e.g. `https://<bucket>.oss-cn-hongkong.aliyuncs.com`.
+Add exactly one entry: `https://oss.hkbiaoge.com`.
+
+That is a custom domain CNAME'd onto the Alibaba OSS bucket — the same objects under
+the same keys, on a host we own. The site rewrites every PDF url onto it before handing
+it over (`src/lib/oss.ts`), so the bucket's own
+`*.oss-cn-hongkong.aliyuncs.com` host never reaches you and does not need allowlisting.
 
 - `https` only, no IP addresses and no ports.
 - The domain must be ICP 备案-filed.
@@ -242,7 +247,7 @@ or possible for that.
 
 ## 6. Checklist
 
-- [ ] OSS host added to **downloadFile 合法域名**
+- [ ] `https://oss.hkbiaoge.com` added to **downloadFile 合法域名**
 - [ ] `pages/pdf/index` created and registered in `app.json`
 - [ ] Raw `options.url` logged once and compared against §1, then the temporary log removed
 - [ ] Verified with a PDF whose filename contains a space

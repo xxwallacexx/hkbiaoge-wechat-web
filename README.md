@@ -57,7 +57,9 @@ The Mini Program mints a short-lived, single-use **code** on our API
 - **PDF hand-off:** a `<web-view>` can't call `wx.openDocument`, so tapping a PDF
   (產品單頁 / 優惠推廣) navigates to a **native page the client owns** —
   `/pages/pdf/index?url=...&name=...`, each param `encodeURIComponent`-encoded once.
-  They must also add the OSS host to their **downloadFile 合法域名** list. The full
+  The url is rewritten onto `oss.hkbiaoge.com` first — a custom domain aliased onto
+  the OSS bucket (`OSS_HOST_ALIASES`, `src/lib/oss.ts`) — so that single host is all
+  they add to their **downloadFile 合法域名** list. The full
   spec, with a copy-pasteable page, is in
   [`docs/mini-program-pdf-page.md`](docs/mini-program-pdf-page.md); the route lives in
   one constant (`PDF_VIEWER_PAGE`, `src/lib/pdf-viewer.ts`).
@@ -157,9 +159,9 @@ Cloud Run, so the mainland ECS box needs no second copy.
       `*.run.app` URL cannot be filed, so this needs the real domain
 - [ ] Domain mapped to the Cloud Run service, then added to the Mini Program
       **业务域名 whitelist**
-- [ ] OSS host on the Mini Program's **downloadFile 合法域名** list, and their PDF page
-      built + its real route confirmed against `PDF_VIEWER_PAGE` — until then, tapping
-      a brochure or promotion does nothing inside WeChat
+- [ ] `https://oss.hkbiaoge.com` on the Mini Program's **downloadFile 合法域名** list,
+      and their PDF page built + its real route confirmed against `PDF_VIEWER_PAGE` —
+      until then, tapping a brochure or promotion does nothing inside WeChat
       (see [`docs/mini-program-pdf-page.md`](docs/mini-program-pdf-page.md))
 - [ ] `WECHAT_VERIFY_FILE` / `WECHAT_VERIFY_TOKEN` set, and the deploy smoke test
       green — verify by hand with `curl https://YOUR-DOMAIN/$WECHAT_VERIFY_FILE`

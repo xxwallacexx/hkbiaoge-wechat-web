@@ -6,10 +6,14 @@
  * which runs `wx.downloadFile` + `wx.openDocument`. Outside the Mini Program (a plain
  * browser) the PDF opens in a new tab.
  *
+ * Either way the url is first rewritten onto the custom OSS domain (see lib/oss.ts), so the
+ * Mini Program only ever receives a host we own — one entry to allowlist, one place to change.
+ *
  * Shared by the brochures and promotions lists: both link straight to a PDF instead of to
  * another web screen, so neither needs a detail route of its own.
  */
 
+import { rewriteOssUrl } from "@/lib/oss";
 import { wechat } from "@/lib/wechat";
 
 /**
@@ -40,9 +44,11 @@ export function openPdf(
   { url, name }: { url: string; name: string },
   inMiniProgram: boolean,
 ) {
+  const target = rewriteOssUrl(url);
+
   if (inMiniProgram) {
-    wechat.navigateTo(pdfViewerUrl(url, name));
+    wechat.navigateTo(pdfViewerUrl(target, name));
     return;
   }
-  window.open(url, "_blank", "noopener,noreferrer");
+  window.open(target, "_blank", "noopener,noreferrer");
 }

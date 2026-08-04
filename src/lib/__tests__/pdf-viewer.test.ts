@@ -3,6 +3,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { openPdf, PDF_VIEWER_PAGE, pdfViewerUrl } from "@/lib/pdf-viewer";
 import { wechat } from "@/lib/wechat";
 
+const BUCKET_URL =
+  "https://chartermax-dev.oss-cn-hongkong.aliyuncs.com/assets/a.pdf";
+const ALIAS_URL = "https://oss.hkbiaoge.com/assets/a.pdf";
+
 afterEach(() => {
   vi.restoreAllMocks();
 });
@@ -76,5 +80,30 @@ describe("openPdf", () => {
       "noopener,noreferrer",
     );
     expect(navigateTo).not.toHaveBeenCalled();
+  });
+
+  // The native page only ever sees the custom domain, so that is the single host the client
+  // has to put on their downloadFile 合法域名 list. See lib/oss.ts.
+  it("hands the native page the rewritten host, not the bucket host", () => {
+    const navigateTo = vi
+      .spyOn(wechat, "navigateTo")
+      .mockResolvedValue(undefined);
+
+    openPdf({ url: BUCKET_URL, name: "優惠" }, true);
+
+    expect(navigateTo).toHaveBeenCalledWith(pdfViewerUrl(ALIAS_URL, "優惠"));
+    expect(navigateTo.mock.calls[0][0]).not.toContain("aliyuncs");
+  });
+
+  it("opens the rewritten url in the new tab too", () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+
+    openPdf({ url: BUCKET_URL, name: "優惠" }, false);
+
+    expect(open).toHaveBeenCalledWith(
+      ALIAS_URL,
+      "_blank",
+      "noopener,noreferrer",
+    );
   });
 });
