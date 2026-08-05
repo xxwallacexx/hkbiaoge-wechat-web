@@ -16,6 +16,13 @@ import type { WxMiniProgram } from "@/types";
 // the `wx.miniProgram` bridge; JSSDK signature config is not required for it.)
 const JWEIXIN_SRC = "https://res.wx.qq.com/open/js/jweixin-1.6.0.js";
 
+/**
+ * Longest we wait on the SDK before giving up. Anything that awaits WeChat needs one of
+ * these: a request the web-view never answers is indistinguishable from a slow one, and
+ * without a deadline the UI waits forever.
+ */
+const BRIDGE_TIMEOUT_MS = 2000;
+
 declare global {
   interface Window {
     wx?: { miniProgram?: WxMiniProgram };
@@ -24,28 +31,42 @@ declare global {
 
 let loader: Promise<void> | null = null;
 
-/** Inject the WeChat JS-SDK once. Resolves immediately on the server. */
+/**
+ * Wait for the WeChat JS-SDK, injecting it if it is not on the page yet. Resolves
+ * immediately on the server.
+ *
+ * Always resolves, never rejects — callers only care whether `window.wx` showed up, which
+ * they check themselves. Settling on failure (rather than rejecting or hanging) is the point:
+ * a caller that never learns the SDK is unavailable can never fall back.
+ */
 export function loadJWeixin(): Promise<void> {
   if (typeof window === "undefined") return Promise.resolve();
   if (window.wx?.miniProgram) return Promise.resolve();
   if (loader) return loader;
 
-  loader = new Promise<void>((resolve, reject) => {
+  loader = new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, BRIDGE_TIMEOUT_MS);
+    const done = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+
     const existing = document.querySelector<HTMLScriptElement>(
       `script[src="${JWEIXIN_SRC}"]`,
     );
     if (existing) {
-      existing.addEventListener("load", () => resolve());
-      existing.addEventListener("error", () =>
-        reject(new Error("Failed to load jweixin")),
-      );
+      // It may already have finished, and `load` does not fire again for a script that
+      // already ran — so check for the SDK before falling back to listening.
+      if (window.wx?.miniProgram) return done();
+      existing.addEventListener("load", done);
+      existing.addEventListener("error", done);
       return;
     }
     const script = document.createElement("script");
     script.src = JWEIXIN_SRC;
     script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Failed to load jweixin"));
+    script.onload = done;
+    script.onerror = done;
     document.head.appendChild(script);
   });
   return loader;
@@ -61,7 +82,7 @@ export function isWeChat(): boolean {
 export async function isMiniProgram(): Promise<boolean> {
   if (typeof window === "undefined") return false;
   if (!isWeChat()) return false;
-  await loadJWeixin().catch(() => undefined);
+  await loadJWeixin();
   const mp = window.wx?.miniProgram;
   if (!mp) return false;
   return new Promise<boolean>((resolve) => {
@@ -77,7 +98,7 @@ async function withMiniProgram<T>(
   fn: (mp: WxMiniProgram) => T,
 ): Promise<T | undefined> {
   if (typeof window === "undefined") return undefined;
-  await loadJWeixin().catch(() => undefined);
+  await loadJWeixin();
   const mp = window.wx?.miniProgram;
   if (!mp) return undefined;
   return fn(mp);
