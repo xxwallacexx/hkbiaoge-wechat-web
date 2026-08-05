@@ -15,14 +15,16 @@ import type { WxMiniProgram } from "@/types";
 // Current stable WeChat JS-SDK. (The Mini Program web-view only needs jweixin for
 // the `wx.miniProgram` bridge; JSSDK signature config is not required for it.)
 //
-// jweixin routes EVERY `wx.miniProgram.*` call through
+// Exported because app/[locale]/layout.tsx loads it in the document head. That is not a
+// preference — jweixin routes EVERY `wx.miniProgram.*` call through
 //
 //   function O(e){ d && (window.WeixinJSBridge ? e() : addEventListener("WeixinJSBridgeReady", e)) }
 //
 // `WeixinJSBridgeReady` fires once, early in page load. A script injected later (from a
 // React effect, say) registers its listener after that event has already passed, so the
-// callback is never invoked and never errors — the call just silently disappears.
-const JWEIXIN_SRC = "https://res.wx.qq.com/open/js/jweixin-1.6.0.js";
+// callback is never invoked and never errors — the call just silently disappears. Loading
+// in the head is what guarantees the listener is in place first.
+export const JWEIXIN_SRC = "https://res.wx.qq.com/open/js/jweixin-1.6.0.js";
 
 /**
  * Longest we wait on the SDK or the native bridge before falling back. Anything that
