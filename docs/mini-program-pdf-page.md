@@ -5,7 +5,10 @@ itself** — `wx.openDocument` is a native-only API — so when the user taps a 
 the PDF's url to a native Mini Program page, which downloads and opens it.
 
 **This page does not exist yet. The client's Mini Program developer implements it from
-this document.** Everything on the H5 side is already shipped.
+this document.** The H5 side is complete, but the hand-off only works from the build that
+loads the WeChat SDK in the document head — before that, the `navigateTo` call is dropped
+before it leaves the web-view and this page is never reached. We will tell you when that
+build is live; start with §4.5 if the page does not open at all.
 
 ---
 
@@ -231,6 +234,19 @@ your largest illustration before assuming big files work; add
 user opens many documents, periodically clear old ones with
 `wx.getFileSystemManager().getSavedFileList()` + `removeSavedFile`.
 
+### 4.5 If nothing happens, find out which half failed
+
+Log at the very top of `onLoad`, before anything else. That one line separates two
+failures that look identical from the outside:
+
+| What you see                                 | Whose problem                                                                                                                                                                                                                    |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `onLoad` never fires; the page never appears | **Ours** — the call never left the web-view. Report it rather than digging: every `wx.miniProgram.*` call passes a bridge-ready gate, and a page that loads the SDK too late has its calls dropped with no error and no callback |
+| `onLoad` fires, then `下載失敗`              | **Yours** — nearly always §2, `https://oss.hkbiaoge.com` missing from **downloadFile 合法域名**                                                                                                                                  |
+
+Little sits in between: once the page is reached, the url it was handed is already
+complete (§1).
+
 ---
 
 ## 5. Not solvable this way: third-party websites
@@ -249,6 +265,8 @@ or possible for that.
 
 - [ ] `https://oss.hkbiaoge.com` added to **downloadFile 合法域名**
 - [ ] `pages/pdf/index` created and registered in `app.json`
+- [ ] The page is actually reached — `onLoad` fires when a PDF row is tapped (§4.5).
+      Confirm this before the rest: until it does, nothing below can be tested
 - [ ] Raw `options.url` logged once and compared against §1, then the temporary log removed
 - [ ] Verified with a PDF whose filename contains a space
 - [ ] Back from the document returns to a still-logged-in web-view
