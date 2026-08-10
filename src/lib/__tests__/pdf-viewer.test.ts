@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { openPdf, PDF_VIEWER_PAGE, pdfViewerUrl } from "@/lib/pdf-viewer";
+import {
+  openPdf,
+  PDF_VIEWER_PAGE,
+  pdfFileName,
+  pdfViewerUrl,
+} from "@/lib/pdf-viewer";
 import { wechat } from "@/lib/wechat";
 
 const BUCKET_URL =
@@ -48,6 +53,34 @@ describe("pdfViewerUrl", () => {
 
     expect(params).toHaveLength(2); // url=… and name=…, nothing split off
     expect(decodeURIComponent(params[0].slice("url=".length))).toBe(url);
+  });
+});
+
+describe("pdfFileName", () => {
+  it("takes the last path segment", () => {
+    expect(pdfFileName("https://cdn.example.com/pdf/u1/plan.pdf")).toBe(
+      "plan.pdf",
+    );
+  });
+
+  // A signed OSS url carries its own query string; splitting on "/" would keep it.
+  it("drops the query string and the fragment", () => {
+    expect(
+      pdfFileName("https://cdn.example.com/a.pdf?Expires=1&Signature=x#page=2"),
+    ).toBe("a.pdf");
+  });
+
+  // The generated plan PDF is keyed by the customer's name, so the segment arrives encoded.
+  it("decodes a percent-encoded segment", () => {
+    expect(
+      pdfFileName(
+        "https://cdn.example.com/pdf/u1/%E9%99%B3%E5%A4%A7%E6%96%87_USD_5000.pdf",
+      ),
+    ).toBe("陳大文_USD_5000.pdf");
+  });
+
+  it("returns the input when it is not a url", () => {
+    expect(pdfFileName("not a url")).toBe("not a url");
   });
 });
 
@@ -105,5 +138,16 @@ describe("openPdf", () => {
       "_blank",
       "noopener,noreferrer",
     );
+  });
+
+  // The generated sheet PDF only exists once the request resolves, so this call happens after
+  // an await. Opening exactly one tab then — rather than pre-opening a blank one in the tap
+  // handler — is deliberate; see hooks/use-sheet-pdf.ts.
+  it("opens exactly one tab per call", () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+
+    openPdf({ url: BUCKET_URL, name: "優惠" }, false);
+
+    expect(open).toHaveBeenCalledTimes(1);
   });
 });
