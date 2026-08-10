@@ -45,6 +45,9 @@ const getCommonPinningStyles = <TData,>(
  * Worksheet table for the saving-plan sheet (ported from webview). Pins the 年度/年齡
  * columns to the left, hides any column whose `id` isn't in `headers` (the backend's
  * premium/death header list), stripes the rows, and highlights the tapped row.
+ *
+ * The scroll container gives up 7rem of the viewport: 3.5rem for the `SheetHeader` above it
+ * and 3.5rem for the bottom bar it would otherwise scroll underneath.
  */
 export function PlanDataTable<TData, TValue>({
   headers,
@@ -83,7 +86,7 @@ export function PlanDataTable<TData, TValue>({
   return (
     <Table
       className="relative inline-table border-collapse"
-      divClassname="max-h-[95vh] overflow-y-scroll"
+      divClassname="max-h-[calc(100vh-7rem)] overflow-y-scroll"
     >
       <TableHeader className="sticky top-0 z-10 w-full">
         {table.getHeaderGroups().map((headerGroup) => (
