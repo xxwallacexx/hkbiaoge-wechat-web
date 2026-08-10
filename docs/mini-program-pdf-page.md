@@ -18,23 +18,28 @@ When a user taps a PDF row inside the Mini Program, the site calls:
 
 ```js
 wx.miniProgram.navigateTo({
-  url: "/pages/pdf/index?url=<ENCODED_PDF_URL>&name=<ENCODED_DISPLAY_NAME>",
+  url: "/pages/pdf/index?url=<ENCODED_PDF_URL>&name=<ENCODED_DISPLAY_NAME>&source=<SOURCE>",
 });
 ```
 
-|                |                                                                                                            |
-| -------------- | ---------------------------------------------------------------------------------------------------------- |
-| **Page route** | `/pages/pdf/index`                                                                                         |
-| **`url`**      | Absolute `https://` link to the PDF, always on `oss.hkbiaoge.com` (see §2)                                 |
-| **`name`**     | Human title of the document, e.g. `2026年首季保費折扣優惠`. Used only for the filename shown in the viewer |
-| **Encoding**   | Each value is `encodeURIComponent`-encoded **exactly once**. A space is `%20`, never `+`                   |
-| **Navigation** | Always `navigateTo` (see §4)                                                                               |
+|                |                                                                                                                                                             |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Page route** | `/pages/pdf/index`                                                                                                                                          |
+| **`url`**      | Absolute `https://` link to the PDF, always on `oss.hkbiaoge.com` (see §2)                                                                                  |
+| **`name`**     | Human title of the document, e.g. `2026年首季保費折扣優惠`. Used only for the filename shown in the viewer                                                  |
+| **`source`**   | Which list the user opened it from: `plan` (a generated 計劃書), `brochure` (產品單頁) or `promotion` (優惠推廣). Informational — the page below ignores it |
+| **Encoding**   | Each value is `encodeURIComponent`-encoded **exactly once**. A space is `%20`, never `+`                                                                    |
+| **Navigation** | Always `navigateTo` (see §4)                                                                                                                                |
 
 A real example of what arrives:
 
 ```
-/pages/pdf/index?url=https%3A%2F%2Foss.hkbiaoge.com%2Fpromotions%2F2026%20Q1.pdf&name=AIA%20%E9%A6%96%E5%AD%A3%E5%84%AA%E6%83%A0
+/pages/pdf/index?url=https%3A%2F%2Foss.hkbiaoge.com%2Fpromotions%2F2026%20Q1.pdf&name=AIA%20%E9%A6%96%E5%AD%A3%E5%84%AA%E6%83%A0&source=promotion
 ```
+
+`source` is always one of those three values and always present. Nothing in §3 reads it — it
+is there so the page can branch later (a different title, a 埋点 event) without another round
+trip to us. Treat an unrecognised value as no value rather than as an error.
 
 The source of truth on our side is `src/lib/pdf-viewer.ts` (`pdfViewerUrl`).
 

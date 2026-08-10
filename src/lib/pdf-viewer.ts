@@ -19,21 +19,35 @@ import { wechat } from "@/lib/wechat";
 
 /**
  * The client-owned native Mini Program page that downloads + displays a PDF. It receives the
- * PDF `url` (+ `name`) as query params. Set this to the client's actual page route.
+ * PDF `url` (+ `name` and `source`) as query params. Set this to the client's actual page route.
  */
 export const PDF_VIEWER_PAGE = "/pages/pdf/index";
 
 /**
+ * Which list the PDF was opened from, passed straight through to the native viewer page. The
+ * three values are the three call sites: a generated plan sheet, a 產品單頁, a 優惠推廣.
+ */
+export type PdfSource = "plan" | "brochure" | "promotion";
+
+/**
  * The native viewer page url for one PDF. Exported so it can be asserted in tests.
  *
- * Both params are encodeURIComponent-encoded exactly once — see docs/mini-program-pdf-page.md,
+ * Every param is encodeURIComponent-encoded exactly once — see docs/mini-program-pdf-page.md,
  * which is the contract the client's page implements against. NOT `URLSearchParams`: that
  * encodes a space as `+`, and `decodeURIComponent` does not turn `+` back into a space, so a
  * PDF whose url contains a space would be requested under a different OSS key (404) and its
  * title would render with a literal `+`.
  */
-export function pdfViewerUrl(url: string, name: string): string {
-  const query = `url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
+export function pdfViewerUrl(
+  url: string,
+  name: string,
+  source: PdfSource,
+): string {
+  const query = [
+    `url=${encodeURIComponent(url)}`,
+    `name=${encodeURIComponent(name)}`,
+    `source=${encodeURIComponent(source)}`,
+  ].join("&");
   return `${PDF_VIEWER_PAGE}?${query}`;
 }
 
@@ -56,15 +70,17 @@ export function pdfFileName(url: string): string {
 /**
  * Open a PDF. `inMiniProgram` comes from `useMiniProgram()`, which reports `null` until its
  * async check settles — a tap before then takes the plain-browser path.
+ *
+ * `source` only travels to the native viewer page; the plain-browser path has no use for it.
  */
 export function openPdf(
-  { url, name }: { url: string; name: string },
+  { url, name, source }: { url: string; name: string; source: PdfSource },
   inMiniProgram: boolean,
 ) {
   const target = rewriteOssUrl(url);
 
   if (inMiniProgram) {
-    wechat.navigateTo(pdfViewerUrl(target, name));
+    wechat.navigateTo(pdfViewerUrl(target, name, source));
     return;
   }
   window.open(target, "_blank", "noopener,noreferrer");

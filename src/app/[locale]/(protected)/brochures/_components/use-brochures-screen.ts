@@ -75,7 +75,7 @@ export function useBrochuresScreen() {
   // outside it. See lib/pdf-viewer.ts; the promotions list uses the same hand-off.
   function onBrochurePress(brochure: Brochure) {
     openPdf(
-      { url: brochure.path, name: brochure.name },
+      { url: brochure.path, name: brochure.name, source: "brochure" },
       Boolean(inMiniProgram),
     );
   }
