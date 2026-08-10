@@ -5,8 +5,11 @@ import { useTranslations } from "next-intl";
 
 import { ExpiredCard } from "@/components/expired-card";
 import { PlanDataTable } from "@/components/plan-data-table";
+import { SheetHeader } from "@/components/sheet-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSheetPdf } from "@/hooks/use-sheet-pdf";
 import { useUnitLinkedPlanSheet } from "@/hooks/use-unit-linked-plan-sheet";
+import { generateUnitLinkedPlanSheetPdf } from "@/lib/api/unit-linked-plans";
 import { cn } from "@/lib/utils";
 
 import { columns } from "./columns";
@@ -18,11 +21,12 @@ import { UnitLinkedCoupleAnnuityTriggerButton } from "./unit-linked-couple-annui
 import { WithdrawalSheetTriggerButton } from "./withdrawal-sheet-trigger-button";
 
 /**
- * The unit-linked sheet: a single worksheet table (no premium/death split — 身故 is in-table)
- * and a bottom bar with the summary + withdrawal buttons, plus optional editors gated by data
- * presence — a type-B/D inline health/area editor + floating custom-parameters editor, and the
- * type-C single + couple annuity editors. `extraButtonCount` shrinks the tab list's col-span as
- * those editors appear. All data/derivation lives in `useUnitLinkedPlanSheet`; presentation only.
+ * The unit-linked sheet: a header with the PDF download over a single worksheet table (no
+ * premium/death split — 身故 is in-table) and a bottom bar with the summary + withdrawal
+ * buttons, plus optional editors gated by data presence — a type-B/D inline health/area
+ * editor + floating custom-parameters editor, and the type-C single + couple annuity
+ * editors. `extraButtonCount` shrinks the tab list's col-span as those editors appear. All
+ * data/derivation lives in `useUnitLinkedPlanSheet`; presentation only.
  */
 export function UnitLinkedPlanSheetScreen() {
   const t = useTranslations("UnitLinkedPlan");
@@ -44,6 +48,12 @@ export function UnitLinkedPlanSheetScreen() {
     extraButtonCount,
   } = useUnitLinkedPlanSheet();
 
+  // Above the early returns below: hook order has to be identical on every render.
+  const { onDownload, isGenerating } = useSheetPdf({
+    generate: () => generateUnitLinkedPlanSheetPdf(sheetId),
+    errorMessage: t("pdfError"),
+  });
+
   if (!planId || !sheetId) return null;
 
   if (showLoading || !isSheetReady || !basicInfo || !sheetInfo || !cal) {
@@ -63,6 +73,13 @@ export function UnitLinkedPlanSheetScreen() {
 
   return (
     <main className="relative h-screen bg-background">
+      <SheetHeader
+        title={planDetail.name}
+        downloadLabel={t("downloadPdf")}
+        busyLabel={t("pdfGenerating")}
+        isBusy={isGenerating}
+        onDownload={onDownload}
+      />
       <Tabs defaultValue="premium" className="w-full">
         <TabsContent value="premium">
           <PlanDataTable

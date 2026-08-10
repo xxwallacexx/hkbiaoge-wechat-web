@@ -5,8 +5,11 @@ import { useTranslations } from "next-intl";
 
 import { ExpiredCard } from "@/components/expired-card";
 import { PlanDataTable } from "@/components/plan-data-table";
+import { SheetHeader } from "@/components/sheet-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSheetPdf } from "@/hooks/use-sheet-pdf";
 import { useWholelifePlanSheet } from "@/hooks/use-wholelife-plan-sheet";
+import { generateWholelifePlanSheetPdf } from "@/lib/api/wholelife-plans";
 
 import { deathColumns } from "./death-columns";
 import { PlanSummarySheetTriggerButton } from "./plan-summary-sheet-trigger-button";
@@ -14,10 +17,11 @@ import { premiumColumns } from "./premium-columns";
 import { WithdrawalSheetTriggerButton } from "./withdrawal-sheet-trigger-button";
 
 /**
- * The whole-life sheet: two tabs (cash value / death benefit) over the worksheet table and a
- * bottom bar with the summary button plus a withdrawal button shown only when the plan's
- * param has a `withdrawalCol`. No discount/prepaid. All data/derivation lives in
- * `useWholelifePlanSheet`; this is presentation only.
+ * The whole-life sheet: a header with the PDF download, two tabs (cash value / death
+ * benefit) over the worksheet table, and a bottom bar with the summary button plus a
+ * withdrawal button shown only when the plan's param has a `withdrawalCol`. No
+ * discount/prepaid. All data/derivation lives in `useWholelifePlanSheet`; this is
+ * presentation only.
  */
 export function WholelifePlanSheetScreen() {
   const t = useTranslations("WholelifePlan");
@@ -36,6 +40,12 @@ export function WholelifePlanSheetScreen() {
     deathData,
     withdrawalData,
   } = useWholelifePlanSheet();
+
+  // Above the early returns below: hook order has to be identical on every render.
+  const { onDownload, isGenerating } = useSheetPdf({
+    generate: () => generateWholelifePlanSheetPdf(sheetId),
+    errorMessage: t("pdfError"),
+  });
 
   if (!planId || !sheetId) return null;
 
@@ -56,6 +66,13 @@ export function WholelifePlanSheetScreen() {
 
   return (
     <main className="relative h-screen bg-background">
+      <SheetHeader
+        title={planDetail.name}
+        downloadLabel={t("downloadPdf")}
+        busyLabel={t("pdfGenerating")}
+        isBusy={isGenerating}
+        onDownload={onDownload}
+      />
       <Tabs defaultValue="premium" className="w-full">
         <TabsContent value="premium">
           <PlanDataTable

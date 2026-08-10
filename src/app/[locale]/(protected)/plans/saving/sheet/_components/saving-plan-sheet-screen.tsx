@@ -5,8 +5,11 @@ import { useTranslations } from "next-intl";
 
 import { ExpiredCard } from "@/components/expired-card";
 import { PlanDataTable } from "@/components/plan-data-table";
+import { SheetHeader } from "@/components/sheet-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSavingPlanSheet } from "@/hooks/use-saving-plan-sheet";
+import { useSheetPdf } from "@/hooks/use-sheet-pdf";
+import { generateSavingPlanSheetPdf } from "@/lib/api/saving-plans";
 
 import { deathColumns } from "./death-columns";
 import { DiscountTriggerButton } from "./discount-trigger-button";
@@ -16,9 +19,10 @@ import { PrepaidTriggerButton } from "./prepaid-trigger-button";
 import { WithdrawalSheetTriggerButton } from "./withdrawal-sheet-trigger-button";
 
 /**
- * The saving-plan sheet: two tabs (cash value / death benefit) over the worksheet table,
- * a bottom bar with the summary + withdrawal buttons, and conditional discount/prepaid
- * editors. All data/derivation lives in `useSavingPlanSheet`; this is presentation only.
+ * The saving-plan sheet: a header with the PDF download, two tabs (cash value / death
+ * benefit) over the worksheet table, a bottom bar with the summary + withdrawal buttons, and
+ * conditional discount/prepaid editors. All data/derivation lives in `useSavingPlanSheet`;
+ * this is presentation only.
  */
 export function SavingPlanSheetScreen() {
   const t = useTranslations("SavingPlan");
@@ -36,6 +40,12 @@ export function SavingPlanSheetScreen() {
     deathData,
     withdrawalData,
   } = useSavingPlanSheet();
+
+  // Above the early returns below: hook order has to be identical on every render.
+  const { onDownload, isGenerating } = useSheetPdf({
+    generate: () => generateSavingPlanSheetPdf(sheetId),
+    errorMessage: t("pdfError"),
+  });
 
   if (!planId || !sheetId) return null;
 
@@ -56,6 +66,13 @@ export function SavingPlanSheetScreen() {
 
   return (
     <main className="relative h-screen bg-background">
+      <SheetHeader
+        title={planDetail.name}
+        downloadLabel={t("downloadPdf")}
+        busyLabel={t("pdfGenerating")}
+        isBusy={isGenerating}
+        onDownload={onDownload}
+      />
       <Tabs defaultValue="premium" className="w-full">
         <TabsContent value="premium">
           <PlanDataTable
