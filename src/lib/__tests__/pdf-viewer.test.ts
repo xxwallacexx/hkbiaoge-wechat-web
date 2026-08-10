@@ -17,11 +17,24 @@ afterEach(() => {
 });
 
 describe("pdfViewerUrl", () => {
-  it("encodes the url and name as query params", () => {
-    expect(pdfViewerUrl("https://cdn.example.com/a.pdf", "首季優惠")).toBe(
-      `${PDF_VIEWER_PAGE}?url=https%3A%2F%2Fcdn.example.com%2Fa.pdf&name=%E9%A6%96%E5%AD%A3%E5%84%AA%E6%83%A0`,
+  it("encodes the url, name and source as query params", () => {
+    expect(
+      pdfViewerUrl("https://cdn.example.com/a.pdf", "首季優惠", "promotion"),
+    ).toBe(
+      `${PDF_VIEWER_PAGE}?url=https%3A%2F%2Fcdn.example.com%2Fa.pdf&name=%E9%A6%96%E5%AD%A3%E5%84%AA%E6%83%A0&source=promotion`,
     );
   });
+
+  // The three values the native page switches on. Spelled out so a renamed literal fails here
+  // rather than reaching the client's page as a source it does not recognise.
+  it.each(["plan", "brochure", "promotion"] as const)(
+    "passes the %s source through verbatim",
+    (source) => {
+      expect(
+        pdfViewerUrl("https://cdn.example.com/a.pdf", "n", source),
+      ).toContain(`&source=${source}`);
+    },
+  );
 
   // A space must survive as %20, not `+`: the Mini Program decodes the query with
   // decodeURIComponent, which leaves `+` alone — so `+` would request a different OSS
@@ -30,7 +43,7 @@ describe("pdfViewerUrl", () => {
     const url = "https://cdn.example.com/promotions/2026 Q1.pdf";
     const name = "AIA 首季優惠";
 
-    const built = pdfViewerUrl(url, name);
+    const built = pdfViewerUrl(url, name, "promotion");
     expect(built).toContain("2026%20Q1.pdf");
     expect(built).not.toContain("+");
 
@@ -41,6 +54,7 @@ describe("pdfViewerUrl", () => {
       );
     expect(decode("url")).toBe(url);
     expect(decode("name")).toBe(name);
+    expect(decode("source")).toBe("promotion");
   });
 
   // Characters that are structural in a query string must not leak out of their param —
@@ -48,10 +62,10 @@ describe("pdfViewerUrl", () => {
   it("keeps a url's own query string inside the url param", () => {
     const url = "https://cdn.example.com/a.pdf?Expires=1&Signature=x+y/z%3D";
 
-    const built = pdfViewerUrl(url, "n");
+    const built = pdfViewerUrl(url, "n", "brochure");
     const params = built.slice(built.indexOf("?") + 1).split("&");
 
-    expect(params).toHaveLength(2); // url=… and name=…, nothing split off
+    expect(params).toHaveLength(3); // url=…, name=… and source=…, nothing split off
     expect(decodeURIComponent(params[0].slice("url=".length))).toBe(url);
   });
 });
@@ -91,10 +105,17 @@ describe("openPdf", () => {
       .mockResolvedValue(undefined);
     const open = vi.spyOn(window, "open").mockReturnValue(null);
 
-    openPdf({ url: "https://cdn.example.com/a.pdf", name: "優惠" }, true);
+    openPdf(
+      {
+        url: "https://cdn.example.com/a.pdf",
+        name: "優惠",
+        source: "promotion",
+      },
+      true,
+    );
 
     expect(navigateTo).toHaveBeenCalledWith(
-      pdfViewerUrl("https://cdn.example.com/a.pdf", "優惠"),
+      pdfViewerUrl("https://cdn.example.com/a.pdf", "優惠", "promotion"),
     );
     expect(open).not.toHaveBeenCalled();
   });
@@ -105,7 +126,14 @@ describe("openPdf", () => {
       .mockResolvedValue(undefined);
     const open = vi.spyOn(window, "open").mockReturnValue(null);
 
-    openPdf({ url: "https://cdn.example.com/a.pdf", name: "優惠" }, false);
+    openPdf(
+      {
+        url: "https://cdn.example.com/a.pdf",
+        name: "優惠",
+        source: "promotion",
+      },
+      false,
+    );
 
     expect(open).toHaveBeenCalledWith(
       "https://cdn.example.com/a.pdf",
@@ -122,16 +150,18 @@ describe("openPdf", () => {
       .spyOn(wechat, "navigateTo")
       .mockResolvedValue(undefined);
 
-    openPdf({ url: BUCKET_URL, name: "優惠" }, true);
+    openPdf({ url: BUCKET_URL, name: "優惠", source: "brochure" }, true);
 
-    expect(navigateTo).toHaveBeenCalledWith(pdfViewerUrl(ALIAS_URL, "優惠"));
+    expect(navigateTo).toHaveBeenCalledWith(
+      pdfViewerUrl(ALIAS_URL, "優惠", "brochure"),
+    );
     expect(navigateTo.mock.calls[0][0]).not.toContain("aliyuncs");
   });
 
   it("opens the rewritten url in the new tab too", () => {
     const open = vi.spyOn(window, "open").mockReturnValue(null);
 
-    openPdf({ url: BUCKET_URL, name: "優惠" }, false);
+    openPdf({ url: BUCKET_URL, name: "優惠", source: "brochure" }, false);
 
     expect(open).toHaveBeenCalledWith(
       ALIAS_URL,
@@ -146,7 +176,7 @@ describe("openPdf", () => {
   it("opens exactly one tab per call", () => {
     const open = vi.spyOn(window, "open").mockReturnValue(null);
 
-    openPdf({ url: BUCKET_URL, name: "優惠" }, false);
+    openPdf({ url: BUCKET_URL, name: "優惠", source: "brochure" }, false);
 
     expect(open).toHaveBeenCalledTimes(1);
   });

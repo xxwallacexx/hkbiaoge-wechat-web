@@ -51,7 +51,7 @@ export function usePromotionsScreen() {
   /** Row tap: open the flyer PDF. There is no detail route — see lib/pdf-viewer.ts. */
   function onPromotionPress(promotion: Promotion) {
     openPdf(
-      { url: promotion.path, name: promotion.name },
+      { url: promotion.path, name: promotion.name, source: "promotion" },
       Boolean(inMiniProgram),
     );
   }

@@ -36,7 +36,10 @@ export function useSheetPdf({
   const { mutate, isPending } = useMutation({
     mutationFn: () => generate(),
     onSuccess: (url) =>
-      openPdf({ url, name: pdfFileName(url) }, Boolean(inMiniProgram)),
+      openPdf(
+        { url, name: pdfFileName(url), source: "plan" },
+        Boolean(inMiniProgram),
+      ),
     onError: () => toast.error(errorMessage),
   });
 
