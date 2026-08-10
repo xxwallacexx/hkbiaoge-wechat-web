@@ -7,7 +7,7 @@
  * `/install`. Type C's sheet also carries annuity + couple-annuity info (see the bottom).
  */
 
-import { api } from "@/lib/api/client";
+import { api, PDF_TIMEOUT_MS } from "@/lib/api/client";
 import type {
   AnnuityInfo,
   CoupleAnnuityInfo,
@@ -297,4 +297,21 @@ export async function updateUnitLinkedCoupleAnnuityInfo({
     coupleAnnuityAge,
     coupleAnnuityOption,
   });
+}
+
+/**
+ * `PUT /unitLinkedSheet/{id}/pdfGenerate` — renders the sheet and returns the generated PDF's
+ * OSS url.
+ *
+ * No body and no explicit content-type: the handler has no body extractor. The timeout
+ * override is required, not padding — see PDF_TIMEOUT_MS.
+ */
+export function generateUnitLinkedPlanSheetPdf(
+  sheetId: string,
+): Promise<string> {
+  return api
+    .put(`/unitLinkedSheet/${sheetId}/pdfGenerate`, undefined, {
+      timeout: PDF_TIMEOUT_MS,
+    })
+    .then((res) => res.data.data as string);
 }

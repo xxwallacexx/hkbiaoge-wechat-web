@@ -15,6 +15,14 @@ export const api = axios.create({
   timeout: 20_000,
 });
 
+/**
+ * Per-request timeout for the sheet PDF endpoints. They render the worksheet with Puppeteer
+ * and upload the result to OSS before responding, which routinely outruns the 20s above —
+ * and axios reports its own timeout as a network error, so a working render would surface as
+ * a failure and invite a second tap.
+ */
+export const PDF_TIMEOUT_MS = 120_000;
+
 api.interceptors.request.use((config) => {
   const token = getToken();
   if (token) {

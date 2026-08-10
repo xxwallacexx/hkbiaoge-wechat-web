@@ -8,7 +8,7 @@
  * same-typed) args take a single object so call sites are order-independent.
  */
 
-import { api } from "@/lib/api/client";
+import { api, PDF_TIMEOUT_MS } from "@/lib/api/client";
 import type {
   PlanCal,
   PlanCalWithCurrency,
@@ -201,6 +201,20 @@ export async function updateSavingPlanSheetWithdrawal({
   value: number;
 }): Promise<void> {
   await api.put(`/sheet/${sheetId}/withdrawal`, { startRow, endRow, value });
+}
+
+/**
+ * `PUT /sheet/{id}/pdfGenerate` — renders the sheet and returns the generated PDF's OSS url.
+ *
+ * No body and no explicit content-type: unlike {@link updateSavingPlanSheetCal} the handler
+ * has no body extractor. The timeout override is required, not padding — see PDF_TIMEOUT_MS.
+ */
+export function generateSavingPlanSheetPdf(sheetId: string): Promise<string> {
+  return api
+    .put(`/sheet/${sheetId}/pdfGenerate`, undefined, {
+      timeout: PDF_TIMEOUT_MS,
+    })
+    .then((res) => res.data.data as string);
 }
 
 /**

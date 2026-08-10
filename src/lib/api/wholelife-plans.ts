@@ -5,7 +5,7 @@
  * booster and no adjust. Reads under `/wholelifePlan/*`, writes under `/wholelifeSheet/*`.
  */
 
-import { api } from "@/lib/api/client";
+import { api, PDF_TIMEOUT_MS } from "@/lib/api/client";
 import type {
   PlanCal,
   PlanCalWithCurrency,
@@ -144,4 +144,21 @@ export async function updateWholelifePlanSheetWithdrawal({
     endRow,
     value,
   });
+}
+
+/**
+ * `PUT /wholelifeSheet/{id}/pdfGenerate` — renders the sheet and returns the generated PDF's
+ * OSS url.
+ *
+ * No body and no explicit content-type: the handler has no body extractor. The timeout
+ * override is required, not padding — see PDF_TIMEOUT_MS.
+ */
+export function generateWholelifePlanSheetPdf(
+  sheetId: string,
+): Promise<string> {
+  return api
+    .put(`/wholelifeSheet/${sheetId}/pdfGenerate`, undefined, {
+      timeout: PDF_TIMEOUT_MS,
+    })
+    .then((res) => res.data.data as string);
 }

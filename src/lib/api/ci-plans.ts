@@ -5,7 +5,7 @@
  * booster and no adjust. Reads under `/ciPlan/*`, writes under `/ciSheet/*`.
  */
 
-import { api } from "@/lib/api/client";
+import { api, PDF_TIMEOUT_MS } from "@/lib/api/client";
 import type {
   CiPlanParam,
   CiPlanSheetBasicInfo,
@@ -120,4 +120,19 @@ export function getCiPlanSheetInfo(sheetId: string): Promise<CiPlanSheetInfo> {
   return api
     .get(`/ciSheet/${sheetId}/info`)
     .then((res) => res.data.data as CiPlanSheetInfo);
+}
+
+/**
+ * `PUT /ciSheet/{id}/pdfGenerate` — renders the sheet and returns the generated PDF's
+ * OSS url.
+ *
+ * No body and no explicit content-type: the handler has no body extractor. The timeout
+ * override is required, not padding — see PDF_TIMEOUT_MS.
+ */
+export function generateCiPlanSheetPdf(sheetId: string): Promise<string> {
+  return api
+    .put(`/ciSheet/${sheetId}/pdfGenerate`, undefined, {
+      timeout: PDF_TIMEOUT_MS,
+    })
+    .then((res) => res.data.data as string);
 }
