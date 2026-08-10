@@ -5,8 +5,11 @@ import { useTranslations } from "next-intl";
 
 import { ExpiredCard } from "@/components/expired-card";
 import { PlanDataTable } from "@/components/plan-data-table";
+import { SheetHeader } from "@/components/sheet-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAnnuityPlanSheet } from "@/hooks/use-annuity-plan-sheet";
+import { useSheetPdf } from "@/hooks/use-sheet-pdf";
+import { generateAnnuityPlanSheetPdf } from "@/lib/api/annuity-plans";
 
 import { AnnuityTriggerButton } from "./annuity-trigger-button";
 import { columns } from "./columns";
@@ -17,10 +20,11 @@ import { premiumColumns } from "./premium-columns";
 import { WithdrawalSheetTriggerButton } from "./withdrawal-sheet-trigger-button";
 
 /**
- * The annuity sheet. Branches on `annuityPlanType` (mirrors the webview switch): GENERAL renders
- * one investment-style table plus a bottom bar with the single + couple annuity editors;
- * defered/immediate render the cash-value / death-benefit two-tab split with a floating annuity
- * editor (no couple annuity). All data/derivation lives in `useAnnuityPlanSheet`; this is
+ * The annuity sheet: a header with the PDF download over a body that branches on
+ * `annuityPlanType` (mirrors the webview switch). GENERAL renders one investment-style
+ * table plus a bottom bar with the single + couple annuity editors; defered/immediate
+ * render the cash-value / death-benefit two-tab split with a floating annuity editor (no
+ * couple annuity). All data/derivation lives in `useAnnuityPlanSheet`; this is
  * presentation only.
  */
 export function AnnuityPlanSheetScreen() {
@@ -42,6 +46,12 @@ export function AnnuityPlanSheetScreen() {
     withdrawalData,
     isGeneral,
   } = useAnnuityPlanSheet();
+
+  // Above the early returns below: hook order has to be identical on every render.
+  const { onDownload, isGenerating } = useSheetPdf({
+    generate: () => generateAnnuityPlanSheetPdf(sheetId),
+    errorMessage: t("pdfError"),
+  });
 
   if (!planId || !sheetId) return null;
 
@@ -71,6 +81,13 @@ export function AnnuityPlanSheetScreen() {
   if (isGeneral) {
     return (
       <main className="relative h-screen bg-background">
+        <SheetHeader
+          title={planDetail.name}
+          downloadLabel={t("downloadPdf")}
+          busyLabel={t("pdfGenerating")}
+          isBusy={isGenerating}
+          onDownload={onDownload}
+        />
         <Tabs defaultValue="premium" className="w-full">
           <TabsContent value="premium">
             <PlanDataTable
@@ -108,6 +125,13 @@ export function AnnuityPlanSheetScreen() {
 
   return (
     <main className="relative h-screen bg-background">
+      <SheetHeader
+        title={planDetail.name}
+        downloadLabel={t("downloadPdf")}
+        busyLabel={t("pdfGenerating")}
+        isBusy={isGenerating}
+        onDownload={onDownload}
+      />
       <Tabs defaultValue="premium" className="w-full">
         <TabsContent value="premium">
           <PlanDataTable

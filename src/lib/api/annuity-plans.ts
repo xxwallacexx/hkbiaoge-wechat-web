@@ -8,7 +8,7 @@
  * displayed-type flags via `/annuityDisplayedType` (mirrors the mobile app).
  */
 
-import { api } from "@/lib/api/client";
+import { api, PDF_TIMEOUT_MS } from "@/lib/api/client";
 import type {
   AnnuityInfo,
   AnnuityPlanParam,
@@ -254,4 +254,19 @@ export function updateAnnuityPayoutPeriod({
   return api
     .put(`/annuitySheet/${sheetId}/payoutPeriod`, { value })
     .then(() => undefined);
+}
+
+/**
+ * `PUT /annuitySheet/{id}/pdfGenerate` — renders the sheet and returns the generated PDF's
+ * OSS url.
+ *
+ * No body and no explicit content-type: the handler has no body extractor. The timeout
+ * override is required, not padding — see PDF_TIMEOUT_MS.
+ */
+export function generateAnnuityPlanSheetPdf(sheetId: string): Promise<string> {
+  return api
+    .put(`/annuitySheet/${sheetId}/pdfGenerate`, undefined, {
+      timeout: PDF_TIMEOUT_MS,
+    })
+    .then((res) => res.data.data as string);
 }

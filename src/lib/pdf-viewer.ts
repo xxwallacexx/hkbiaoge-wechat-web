@@ -9,8 +9,9 @@
  * Either way the url is first rewritten onto the custom OSS domain (see lib/oss.ts), so the
  * Mini Program only ever receives a host we own — one entry to allowlist, one place to change.
  *
- * Shared by the brochures and promotions lists: both link straight to a PDF instead of to
- * another web screen, so neither needs a detail route of its own.
+ * Shared by the brochures and promotions lists (both link straight to a stored PDF instead of
+ * to another web screen, so neither needs a detail route of its own) and by the six sheet
+ * screens, which generate one first — see hooks/use-sheet-pdf.ts.
  */
 
 import { rewriteOssUrl } from "@/lib/oss";
@@ -34,6 +35,22 @@ export const PDF_VIEWER_PAGE = "/pages/pdf/index";
 export function pdfViewerUrl(url: string, name: string): string {
   const query = `url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
   return `${PDF_VIEWER_PAGE}?${query}`;
+}
+
+/**
+ * Display name for a PDF: the last path segment of its url, decoded.
+ *
+ * Parsed as a url rather than split on "/" for two reasons: a signed OSS url's
+ * `?Expires=…&Signature=…` would otherwise end up inside the filename, and a generated plan
+ * PDF is keyed by the customer's name, which arrives percent-encoded.
+ */
+export function pdfFileName(url: string): string {
+  try {
+    const path = new URL(url).pathname;
+    return decodeURIComponent(path.slice(path.lastIndexOf("/") + 1));
+  } catch {
+    return url; // relative or malformed: nothing better to show
+  }
 }
 
 /**

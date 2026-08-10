@@ -25,7 +25,10 @@
     "expectedInstalTooLarge": "期望保費過高，請調整。",
     "cashValue": "現金價值",
     "deathBenefit": "身故賠償",
-    "planOverview": "計劃書概覽"
+    "planOverview": "計劃書概覽",
+    "downloadPdf": "下載計劃書",
+    "pdfGenerating": "計劃書生成中",
+    "pdfError": "計劃書生成失敗，請重試。"
   },
   "_withdrawal": {
     "withdrawalOverview": "提取概覽",

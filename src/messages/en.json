@@ -25,7 +25,10 @@
     "expectedInstalTooLarge": "Expected premium too high, please adjust.",
     "cashValue": "Cash value",
     "deathBenefit": "Death benefit",
-    "planOverview": "Plan overview"
+    "planOverview": "Plan overview",
+    "downloadPdf": "Download PDF",
+    "pdfGenerating": "Generating…",
+    "pdfError": "Could not generate the PDF. Please try again."
   },
   "_withdrawal": {
     "withdrawalOverview": "Withdrawal overview",

@@ -5,17 +5,21 @@ import { useTranslations } from "next-intl";
 
 import { ExpiredCard } from "@/components/expired-card";
 import { PlanDataTable } from "@/components/plan-data-table";
+import { SheetHeader } from "@/components/sheet-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCiPlanSheet } from "@/hooks/use-ci-plan-sheet";
+import { useSheetPdf } from "@/hooks/use-sheet-pdf";
+import { generateCiPlanSheetPdf } from "@/lib/api/ci-plans";
 
 import { deathColumns } from "./death-columns";
 import { PlanSummarySheetTriggerButton } from "./plan-summary-sheet-trigger-button";
 import { premiumColumns } from "./premium-columns";
 
 /**
- * The CI-plan sheet: two tabs (cash value / death benefit) over the worksheet table and a
- * bottom bar with the summary button. CI is read-only — no withdrawal/discount/prepaid. All
- * data/derivation lives in `useCiPlanSheet`; this is presentation only.
+ * The CI-plan sheet: a header with the PDF download, two tabs (cash value / death benefit)
+ * over the worksheet table, and a bottom bar with the summary button. CI is read-only — no
+ * withdrawal/discount/prepaid. All data/derivation lives in `useCiPlanSheet`; this is
+ * presentation only.
  */
 export function CiPlanSheetScreen() {
   const t = useTranslations("CiPlan");
@@ -33,6 +37,12 @@ export function CiPlanSheetScreen() {
     premiumData,
     deathData,
   } = useCiPlanSheet();
+
+  // Above the early returns below: hook order has to be identical on every render.
+  const { onDownload, isGenerating } = useSheetPdf({
+    generate: () => generateCiPlanSheetPdf(sheetId),
+    errorMessage: t("pdfError"),
+  });
 
   if (!planId || !sheetId) return null;
 
@@ -53,6 +63,13 @@ export function CiPlanSheetScreen() {
 
   return (
     <main className="relative h-screen bg-background">
+      <SheetHeader
+        title={planDetail.name}
+        downloadLabel={t("downloadPdf")}
+        busyLabel={t("pdfGenerating")}
+        isBusy={isGenerating}
+        onDownload={onDownload}
+      />
       <Tabs defaultValue="premium" className="w-full">
         <TabsContent value="premium">
           <PlanDataTable
