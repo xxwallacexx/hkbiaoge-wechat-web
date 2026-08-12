@@ -273,4 +273,30 @@ test.describe("/plans/saving/param (saving)", () => {
 
     await expect.poll(() => statusHits, { timeout: 6000 }).toBeGreaterThan(1);
   });
+
+  // iOS magnifies the entire page whenever a focused field computes below 16px, and a
+  // Mini Program web-view has no address bar or pinch-out to undo it — the page just
+  // stays zoomed and clipped on both edges (see the comment in ui/input.tsx). This is a
+  // whole-screen assertion rather than a unit test of that one className because the
+  // rule is about what actually renders: a `text-sm` slipped into any caller's
+  // `className` would win the `cn()` merge and reintroduce the bug invisibly.
+  test.describe("at a phone viewport", () => {
+    test.use({ viewport: { width: 402, height: 874 } });
+
+    test("no field is small enough for iOS to focus-zoom the page", async ({
+      page,
+    }) => {
+      await page.goto(URL);
+      await expect(page.getByPlaceholder("輸入姓名")).toBeVisible();
+
+      const fontSizes = await page
+        .locator("input")
+        .evaluateAll((fields) =>
+          fields.map((field) => parseFloat(getComputedStyle(field).fontSize)),
+        );
+
+      expect(fontSizes.length).toBeGreaterThan(0);
+      expect(Math.min(...fontSizes)).toBeGreaterThanOrEqual(16);
+    });
+  });
 });
