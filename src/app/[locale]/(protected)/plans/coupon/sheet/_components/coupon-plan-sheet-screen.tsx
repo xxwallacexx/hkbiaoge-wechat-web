@@ -44,6 +44,17 @@ export function CouponPlanSheetScreen() {
   const { onDownload, isGenerating } = useSheetPdf({
     generate: () => generateCouponPlanSheetPdf(sheetId),
     errorMessage: t("pdfError"),
+    // Optional-chained for the same reason this call sits up here: the loading gate is below.
+    // The download button only renders once the sheet does, so these are filled in by the time
+    // it can be tapped.
+    meta: {
+      customerName: basicInfo?.name,
+      planName: planDetail?.name,
+      instal: cal?.instal,
+      amount: cal?.amount,
+      currency: sheetInfo?.currency,
+      period: sheetInfo?.period,
+    },
   });
 
   if (!planId || !sheetId) return null;

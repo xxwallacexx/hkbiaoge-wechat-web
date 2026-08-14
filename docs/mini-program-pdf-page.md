@@ -41,7 +41,41 @@ A real example of what arrives:
 is there so the page can branch later (a different title, a 埋点 event) without another round
 trip to us. Treat an unrecognised value as no value rather than as an error.
 
-The source of truth on our side is `src/lib/pdf-viewer.ts` (`pdfViewerUrl`).
+### 1.1 A generated 計劃書 carries six more params
+
+Only when `source=plan`. They describe the sheet the PDF was generated from, so the page can
+show who the document is for instead of just its filename:
+
+| Param              |          | Example        |
+| ------------------ | -------- | -------------- |
+| **`customerName`** | 客户姓名 | `陳大文`       |
+| **`planName`**     | 产品名称 | `盈月儲蓄計劃` |
+| **`instal`**       | 保费金额 | `5000`         |
+| **`amount`**       | 名義金額 | `100000`       |
+| **`currency`**     | 币种     | `USD`          |
+| **`period`**       | 年期     | `5`            |
+
+All six are **optional, and always in that order**. Encoded exactly once, like every param
+above.
+
+**A missing param means "not applicable", not "empty".** We never send `instal=` or
+`instal=undefined` — the key is simply absent, so render nothing for it rather than a blank
+label. This is not hypothetical: one plan type (a GENERAL 年金) has no premium figure at all
+and legitimately arrives without `instal`.
+
+`currency` is the currency of both `instal` and `amount`. Neither carries a symbol or
+thousands separators — pair and format them on your side however the page reads best.
+
+A real example of the `plan` case:
+
+```
+/pages/pdf/index?url=https%3A%2F%2Foss.hkbiaoge.com%2Fpdf%2Fu1%2FTester_USD_5000_1.pdf&name=Tester_USD_5000_1.pdf&source=plan&customerName=%E9%99%B3%E5%A4%A7%E6%96%87&planName=%E7%9B%88%E6%9C%88%E5%84%B2%E8%93%84%E8%A8%88%E5%8A%83&instal=5000&amount=100000&currency=USD&period=5
+```
+
+A 產品單頁 / 優惠推廣 belongs to no customer, so a `brochure` / `promotion` url is exactly
+what it was before these existed — the §1 example above is still byte-for-byte accurate.
+
+The source of truth on our side is `src/lib/pdf-viewer.ts` (`pdfViewerUrl`, `PdfMeta`).
 
 ---
 
@@ -274,6 +308,8 @@ or possible for that.
       Confirm this before the rest: until it does, nothing below can be tested
 - [ ] Raw `options.url` logged once and compared against §1, then the temporary log removed
 - [ ] Verified with a PDF whose filename contains a space
+- [ ] A `source=plan` PDF renders its §1.1 params, and one arriving **without** `instal`
+      renders nothing in its place rather than a blank label
 - [ ] Back from the document returns to a still-logged-in web-view
 - [ ] Route confirmed to us — if it is **not** `/pages/pdf/index`, we change one constant
       (`PDF_VIEWER_PAGE` in `src/lib/pdf-viewer.ts`)

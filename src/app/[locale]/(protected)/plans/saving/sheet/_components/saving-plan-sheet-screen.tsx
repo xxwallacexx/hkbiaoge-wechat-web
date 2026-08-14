@@ -45,6 +45,17 @@ export function SavingPlanSheetScreen() {
   const { onDownload, isGenerating } = useSheetPdf({
     generate: () => generateSavingPlanSheetPdf(sheetId),
     errorMessage: t("pdfError"),
+    // Optional-chained for the same reason this call sits up here: the loading gate is below.
+    // The download button only renders once the sheet does, so these are filled in by the time
+    // it can be tapped. Saving keeps 年期 and 币种 on personalInfo rather than a sheetInfo.
+    meta: {
+      customerName: personalInfo?.name,
+      planName: planDetail?.name,
+      instal: cal?.instal,
+      amount: cal?.amount,
+      currency: personalInfo?.currency,
+      period: personalInfo?.period ? String(personalInfo.period) : undefined,
+    },
   });
 
   if (!planId || !sheetId) return null;

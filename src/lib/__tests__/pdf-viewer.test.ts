@@ -68,6 +68,63 @@ describe("pdfViewerUrl", () => {
     expect(params).toHaveLength(3); // url=…, name=… and source=…, nothing split off
     expect(decodeURIComponent(params[0].slice("url=".length))).toBe(url);
   });
+
+  // A 產品單頁 / 優惠推廣 belongs to no customer and passes no meta. Asserted as an exact
+  // string: these two lists are the call sites already in production, and their url must not
+  // move at all — not even an empty `customerName=`.
+  it("adds nothing at all without meta", () => {
+    expect(pdfViewerUrl("https://cdn.example.com/a.pdf", "n", "brochure")).toBe(
+      `${PDF_VIEWER_PAGE}?url=https%3A%2F%2Fcdn.example.com%2Fa.pdf&name=n&source=brochure`,
+    );
+  });
+
+  // The order is the order `pdfViewerUrl` writes them in, not the order the call site's
+  // object literal happens to use — the doc's example is a fixed string.
+  it("appends the sheet params in a fixed order", () => {
+    expect(
+      pdfViewerUrl("https://cdn.example.com/a.pdf", "n", "plan", {
+        period: "5",
+        currency: "USD",
+        amount: "100000",
+        instal: "5000",
+        planName: "PlanName",
+        customerName: "Tester",
+      }),
+    ).toBe(
+      `${PDF_VIEWER_PAGE}?url=https%3A%2F%2Fcdn.example.com%2Fa.pdf&name=n&source=plan` +
+        "&customerName=Tester&planName=PlanName&instal=5000&amount=100000&currency=USD&period=5",
+    );
+  });
+
+  // An annuity GENERAL sheet never loads a cal, so it has no premium to send. The param is
+  // absent, not `instal=` and not `instal=undefined` — and dropping it must not disturb the
+  // params on either side of it.
+  it("drops only the params it has no value for", () => {
+    const built = pdfViewerUrl("https://cdn.example.com/a.pdf", "n", "plan", {
+      customerName: "Tester",
+      planName: "PlanName",
+      amount: "100000",
+      currency: "USD",
+      period: "5",
+    });
+
+    expect(built).not.toContain("instal");
+    expect(built).toContain("&planName=PlanName&amount=100000&currency=USD");
+  });
+
+  // Same rule as the url and the name: one encode, so one decodeURIComponent recovers the
+  // customer's name and a space never becomes `+`.
+  it("survives one decodeURIComponent when a sheet param is CJK", () => {
+    const customerName = "陳 大文";
+
+    const built = pdfViewerUrl("https://cdn.example.com/a.pdf", "n", "plan", {
+      customerName,
+    });
+    expect(built).not.toContain("+");
+
+    const value = built.slice(built.indexOf("&customerName=") + 14);
+    expect(decodeURIComponent(value)).toBe(customerName);
+  });
 });
 
 describe("pdfFileName", () => {
@@ -163,6 +220,33 @@ describe("openPdf", () => {
 
     openPdf({ url: BUCKET_URL, name: "優惠", source: "brochure" }, false);
 
+    expect(open).toHaveBeenCalledWith(
+      ALIAS_URL,
+      "_blank",
+      "noopener,noreferrer",
+    );
+  });
+
+  // A generated sheet passes its own facts through; the new-tab path has no receiver for
+  // them, so outside a Mini Program they are simply not part of the call.
+  it("forwards a sheet's meta to the native viewer page only", () => {
+    const navigateTo = vi
+      .spyOn(wechat, "navigateTo")
+      .mockResolvedValue(undefined);
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    const args = {
+      url: BUCKET_URL,
+      name: "陳大文_USD_5000.pdf",
+      source: "plan" as const,
+      meta: { customerName: "陳大文", instal: "5000", currency: "USD" },
+    };
+
+    openPdf(args, true);
+    expect(navigateTo).toHaveBeenCalledWith(
+      pdfViewerUrl(ALIAS_URL, args.name, "plan", args.meta),
+    );
+
+    openPdf(args, false);
     expect(open).toHaveBeenCalledWith(
       ALIAS_URL,
       "_blank",

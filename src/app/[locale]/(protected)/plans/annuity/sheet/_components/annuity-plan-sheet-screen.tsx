@@ -51,6 +51,21 @@ export function AnnuityPlanSheetScreen() {
   const { onDownload, isGenerating } = useSheetPdf({
     generate: () => generateAnnuityPlanSheetPdf(sheetId),
     errorMessage: t("pdfError"),
+    // Optional-chained for the same reason this call sits up here: the loading gate is below.
+    // The download button only renders once the sheet does, so these are filled in by the time
+    // it can be tapped.
+    //
+    // GENERAL has no cal, so it has no 保费金额 and that param is simply absent. It does have a
+    // 名義金額 though — the amount the user entered, which is what its own summary shows — so
+    // that is where `amount` comes from there.
+    meta: {
+      customerName: basicInfo?.name,
+      planName: planDetail?.name,
+      instal: cal?.instal,
+      amount: cal?.amount ?? sheetInfo?.amount,
+      currency: sheetInfo?.currency,
+      period: sheetInfo?.period,
+    },
   });
 
   if (!planId || !sheetId) return null;

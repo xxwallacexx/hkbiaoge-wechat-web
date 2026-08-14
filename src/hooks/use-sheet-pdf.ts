@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { useMiniProgram } from "@/hooks/use-mini-program";
-import { openPdf, pdfFileName } from "@/lib/pdf-viewer";
+import { openPdf, pdfFileName, type PdfMeta } from "@/lib/pdf-viewer";
 
 /**
  * Generate a sheet's PDF and open it. Shared by all six sheet screens — only the API call
@@ -27,9 +27,17 @@ import { openPdf, pdfFileName } from "@/lib/pdf-viewer";
 export function useSheetPdf({
   generate,
   errorMessage,
+  meta,
 }: {
   generate: () => Promise<string>;
   errorMessage: string;
+  /**
+   * The sheet's customer / plan / premium facts, for the native viewer page (see
+   * lib/pdf-viewer.ts). Each screen builds this above its own loading gate, so every field may
+   * still be undefined on the first renders — an absent field is left out of the url, and the
+   * download button this drives only exists once the sheet itself has rendered.
+   */
+  meta?: PdfMeta;
 }) {
   const inMiniProgram = useMiniProgram();
 
@@ -37,7 +45,7 @@ export function useSheetPdf({
     mutationFn: () => generate(),
     onSuccess: (url) =>
       openPdf(
-        { url, name: pdfFileName(url), source: "plan" },
+        { url, name: pdfFileName(url), source: "plan", meta },
         Boolean(inMiniProgram),
       ),
     onError: () => toast.error(errorMessage),
