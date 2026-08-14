@@ -51,6 +51,17 @@ export function AnnuityPlanSheetScreen() {
   const { onDownload, isGenerating } = useSheetPdf({
     generate: () => generateAnnuityPlanSheetPdf(sheetId),
     errorMessage: t("pdfError"),
+    // Optional-chained for the same reason this call sits up here: the loading gate is below.
+    // The download button only renders once the sheet does, so these are filled in by the time
+    // it can be tapped. GENERAL has no cal at all, so it sends neither 保费金额 nor 名義金額.
+    meta: {
+      customerName: basicInfo?.name,
+      planName: planDetail?.name,
+      instal: cal?.instal,
+      amount: cal?.amount,
+      currency: sheetInfo?.currency,
+      period: sheetInfo?.period,
+    },
   });
 
   if (!planId || !sheetId) return null;
