@@ -100,6 +100,43 @@ test.describe("/plans", () => {
     await expect.poll(() => lastSearch).toBe("friend");
   });
 
+  test("search waits for the IME instead of pushing 速成 radicals", async ({
+    page,
+  }) => {
+    await authenticate(page);
+    const searches: (string | null)[] = [];
+    await page.route(/\/api\/plan(\?|$)/, (route) => {
+      searches.push(new URL(route.request().url()).searchParams.get("search"));
+      return sendData([])(route);
+    });
+    await page.goto("/zh-HK/plans");
+    await page.getByPlaceholder("搜尋保險產品").click();
+
+    // 速成 types 永 as the radical glyphs 戈 then 戈水, which sit in the field as
+    // marked text until a candidate is picked. The pause is the user reading the
+    // candidate bar — anything over the 300ms debounce used to leak 戈水 out.
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Input.imeSetComposition", {
+      text: "戈",
+      selectionStart: 1,
+      selectionEnd: 1,
+    });
+    await cdp.send("Input.imeSetComposition", {
+      text: "戈水",
+      selectionStart: 2,
+      selectionEnd: 2,
+    });
+    await page.waitForTimeout(600);
+    expect(page.url()).not.toContain(encodeURIComponent("戈水"));
+
+    await cdp.send("Input.insertText", { text: "永" });
+    await expect(page).toHaveURL(
+      new RegExp(`[?&]search=${encodeURIComponent("永")}`),
+    );
+    await expect.poll(() => searches).toContain("永");
+    expect(searches).not.toContain("戈水");
+  });
+
   test("company filter sets ?company= and insuranceCompanyId", async ({
     page,
   }) => {
