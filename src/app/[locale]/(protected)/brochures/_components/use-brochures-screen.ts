@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { type CompositionEvent, useEffect, useMemo, useState } from "react";
 
 import { useAuthToken } from "@/hooks/use-auth-token";
 import { useBrochuresQuery } from "@/hooks/use-brochures-query";
@@ -29,6 +29,7 @@ export function useBrochuresScreen() {
   const companyId = searchParams.get("company") ?? undefined;
 
   const [searchInput, setSearchInput] = useState(search);
+  const [composing, setComposing] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
   // Reflect external URL changes (back/forward) into the input.
@@ -53,13 +54,29 @@ export function useBrochuresScreen() {
     router.replace({ pathname: "/brochures", query }, { scroll: false });
   }
 
-  // Debounce the search input into the URL.
+  // Debounce the search input into the URL, but never mid-composition: while an IME is
+  // open the field holds the keystrokes, not the word — 速成/倉頡 shows 永 as 戈水 and
+  // 計 as 卜中 — so a user pausing on the candidate bar for longer than the debounce
+  // used to search for, and navigate to, radicals they never meant to type.
   useEffect(() => {
+    if (composing) return;
     if (searchInput === search) return;
     const id = setTimeout(() => pushUrl({ search: searchInput }), 300);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchInput]);
+  }, [searchInput, composing]);
+
+  // Every `input` event Chromium fires during a composition is flagged isComposing, and
+  // the last of them lands *before* compositionend — so onChange alone never sees the
+  // committed word. Read it here; browsers that order the two the other way round are
+  // covered by the trailing onChange, which stays ungated.
+  const searchCompositionProps = {
+    onCompositionStart: () => setComposing(true),
+    onCompositionEnd: (e: CompositionEvent<HTMLInputElement>) => {
+      setComposing(false);
+      setSearchInput(e.currentTarget.value);
+    },
+  };
 
   const query = useBrochuresQuery({ tab, search, companyId });
   const brochures = useMemo(() => query.data?.pages.flat() ?? [], [query.data]);
@@ -85,6 +102,7 @@ export function useBrochuresScreen() {
     companyId,
     searchInput,
     setSearchInput,
+    searchCompositionProps,
     filterOpen,
     setFilterOpen,
     pushUrl,
