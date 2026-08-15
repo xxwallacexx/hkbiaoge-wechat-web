@@ -24,6 +24,7 @@ export function PlansScreen() {
     companyId,
     searchInput,
     setSearchInput,
+    searchCompositionProps,
     filterOpen,
     setFilterOpen,
     pushUrl,
@@ -47,6 +48,7 @@ export function PlansScreen() {
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
+            {...searchCompositionProps}
             placeholder={t("searchPlaceholder")}
             className="h-11 flex-1 border-0 bg-white text-foreground"
           />
