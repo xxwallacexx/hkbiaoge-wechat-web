@@ -255,6 +255,47 @@ test.describe("/plans/saving/param (saving)", () => {
     );
   });
 
+  test("the sheet screen sees the edited info, not the param screen's cache", async ({
+    page,
+  }) => {
+    // The param screen reads personalInfo on mount and the sheet screen reads the SAME
+    // ["savingPlanSheet", sheetId] keys, so without an invalidation on submit the sheet
+    // renders whatever was cached before the user typed — for the full 60s staleTime.
+    // The stub below always tells the truth: every read after the PUT returns the edit.
+    let edited = false;
+    const reads: string[] = [];
+    await page.route(/\/api\/sheet\/s1\/personalInfo(\?|$)/, (route) => {
+      if (route.request().method() === "PUT") {
+        edited = true;
+        return sendData({ instal: "5000", instal_num: 5000, amount: "100000" })(
+          route,
+        );
+      }
+      reads.push(edited ? "after" : "before");
+      return sendData(
+        edited ? { ...personalInfo, name: "新名字", age: 45 } : personalInfo,
+      )(route);
+    });
+    await page.route(
+      /\/api\/sheet\/s1\/cal(\?|$)/,
+      sendData({ instal: "5000", instal_num: 5000, amount: "100000" }),
+    );
+    await page.route(/\/api\/sheet\/s1\/data(\?|$)/, sendData([]));
+
+    await page.goto(URL);
+    await page.getByPlaceholder("輸入姓名").fill("新名字");
+    await page.getByPlaceholder("輸入年齡").fill("45");
+    await page.getByRole("button", { name: "下一步" }).click();
+    await expect(page.getByText("輸入投保金額")).toBeVisible();
+
+    await page.getByPlaceholder("輸入期望保費").fill("5000");
+    await expect(page.getByRole("button", { name: "生成報表" })).toBeEnabled();
+    await page.getByRole("button", { name: "生成報表" }).click();
+    await expect(page).toHaveURL(/\/plans\/saving\/sheet/);
+
+    await expect.poll(() => reads).toContain("after");
+  });
+
   test("polls plan status every 3s until the sheet is synced", async ({
     page,
   }) => {
