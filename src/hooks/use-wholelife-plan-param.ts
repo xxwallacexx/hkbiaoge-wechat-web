@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -35,6 +35,7 @@ export function useWholelifePlanParam() {
   const planId = searchParams.get("planId") ?? "";
   const sheetId = searchParams.get("sheetId") ?? "";
   const { ready, isAuthenticated } = useAuthToken();
+  const queryClient = useQueryClient();
   const enabled = isAuthenticated && !!planId && !!sheetId;
 
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
@@ -92,6 +93,11 @@ export function useWholelifePlanParam() {
     mutationFn: (values: WholelifePlanParamFormValues) =>
       updateWholelifePlanSheetInfo({ sheetId, ...values }),
     onSuccess: (res) => {
+      // The sheet screen reads these same keys, and the client's staleTime is 60s, so
+      // without this it renders the worksheet as it was before this submit.
+      queryClient.invalidateQueries({
+        queryKey: ["wholelifePlanSheet", sheetId],
+      });
       setAmount(res.amount);
       setInstal(res.instal);
       setCurrency(res.currency);
