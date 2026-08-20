@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -38,6 +38,7 @@ export function useAnnuityPlanParam() {
   const planId = searchParams.get("planId") ?? "";
   const sheetId = searchParams.get("sheetId") ?? "";
   const { ready, isAuthenticated } = useAuthToken();
+  const queryClient = useQueryClient();
   const enabled = isAuthenticated && !!planId && !!sheetId;
 
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
@@ -130,6 +131,11 @@ export function useAnnuityPlanParam() {
       return isGeneral ? null : getAnnuityPlanSheetCal(sheetId);
     },
     onSuccess: (cal, values) => {
+      // The sheet screen reads these same keys, and the client's staleTime is 60s, so
+      // without this it renders the worksheet as it was before this submit.
+      queryClient.invalidateQueries({
+        queryKey: ["annuityPlanSheet", sheetId],
+      });
       if (isGeneral || !cal) {
         router.push({
           pathname: "/plans/annuity/sheet",
