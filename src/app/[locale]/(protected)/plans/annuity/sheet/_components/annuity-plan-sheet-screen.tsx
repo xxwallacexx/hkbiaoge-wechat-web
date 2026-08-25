@@ -45,6 +45,9 @@ export function AnnuityPlanSheetScreen() {
     deathData,
     withdrawalData,
     isGeneral,
+    annuityInfo,
+    payoutPeriod,
+    coupleAnnuityInfo,
   } = useAnnuityPlanSheet();
 
   // Above the early returns below: hook order has to be identical on every render.
@@ -58,6 +61,9 @@ export function AnnuityPlanSheetScreen() {
     // GENERAL has no cal, so it has no 保费金额 and that param is simply absent. It does have a
     // 名義金額 though — the amount the user entered, which is what its own summary shows — so
     // that is where `amount` comes from there.
+    //
+    // The annuity fields arrive from the hook already filtered by the display-type flags, so
+    // an annuity that is switched off contributes nothing rather than being filtered again.
     meta: {
       customerName: basicInfo?.name,
       companyName: planDetail?.insuranceCompanyDetail.name,
@@ -68,6 +74,11 @@ export function AnnuityPlanSheetScreen() {
       amount: cal?.amount ?? sheetInfo?.amount,
       currency: sheetInfo?.currency,
       period: sheetInfo?.period,
+      annuityAge: annuityInfo?.annuityAge?.toString(),
+      annuityOption: annuityInfo?.annuityOption,
+      payoutPeriod,
+      coupleAnnuityAge: coupleAnnuityInfo?.coupleAnnuityAge?.toString(),
+      coupleAnnuityOption: coupleAnnuityInfo?.coupleAnnuityOption,
     },
   });
 
