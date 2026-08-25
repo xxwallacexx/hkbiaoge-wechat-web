@@ -41,36 +41,67 @@ A real example of what arrives:
 is there so the page can branch later (a different title, a 埋点 event) without another round
 trip to us. Treat an unrecognised value as no value rather than as an error.
 
-### 1.1 A generated 計劃書 carries six more params
+### 1.1 A generated 計劃書 carries up to eighteen more params
 
 Only when `source=plan`. They describe the sheet the PDF was generated from, so the page can
-show who the document is for instead of just its filename:
+show who the document is for and what it was priced on, instead of just its filename:
 
-| Param              |          | Example        |
-| ------------------ | -------- | -------------- |
-| **`customerName`** | 客户姓名 | `陳大文`       |
-| **`planName`**     | 产品名称 | `盈月儲蓄計劃` |
-| **`instal`**       | 保费金额 | `5000`         |
-| **`amount`**       | 名義金額 | `100000`       |
-| **`currency`**     | 币种     | `USD`          |
-| **`period`**       | 年期     | `5`            |
+| Param                     |              | Example        | Sent by                        |
+| ------------------------- | ------------ | -------------- | ------------------------------ |
+| **`customerName`**        | 客户姓名     | `陳大文`       | every plan type                |
+| **`companyName`**         | 保險公司     | `友記`         | every plan type                |
+| **`planName`**            | 产品名称     | `盈月儲蓄計劃` | every plan type                |
+| **`sex`**                 | 性別         | `男`           | every plan type                |
+| **`age`**                 | 年齡         | `30`           | every plan type                |
+| **`instal`**              | 保费金额     | `5000`         | every type except 年金 GENERAL |
+| **`amount`**              | 名義金額     | `100000`       | every plan type                |
+| **`currency`**            | 币种         | `USD`          | every plan type                |
+| **`period`**              | 年期         | `5`            | every plan type                |
+| **`health`**              | 健康標準     | `標準`         | 人壽 · 危疾 · 指數相連 B/D     |
+| **`area`**                | 地區         | `亞洲`         | 人壽 · 危疾 · 指數相連 B/D     |
+| **`dividend`**            | 派息選項     | `累積`         | 派息                           |
+| **`currentInterestRate`** | 現行利率     | `3.5%`         | 指數相連                       |
+| **`annuityAge`**          | 年金年齡     | `65`           | 年金 · 指數相連 C              |
+| **`annuityOption`**       | 年金選項     | `終身年金`     | 年金 · 指數相連 C              |
+| **`payoutPeriod`**        | 派發期       | `每月`         | 年金, when the plan has one    |
+| **`coupleAnnuityAge`**    | 聯合年金年齡 | `60`           | 年金 GENERAL · 指數相連 C      |
+| **`coupleAnnuityOption`** | 聯合年金選項 | `聯合年金`     | 年金 GENERAL · 指數相連 C      |
 
-All six are **optional, and always in that order**. Encoded exactly once, like every param
-above.
+All eighteen are **optional, and always in that order**. Encoded exactly once, like every
+param above.
 
 **A missing param means "not applicable", not "empty".** We never send `instal=` or
 `instal=undefined` — the key is simply absent, so render nothing for it rather than a blank
-label. This is not hypothetical: one plan type (a GENERAL 年金) has no premium figure at all
-and legitimately arrives without `instal`.
+label. This is not hypothetical, and the "Sent by" column above is why: **no single PDF
+carries all eighteen.** A 危疾 sheet has no annuity, a 年金 sheet has no 健康標準, and a
+GENERAL 年金 has no premium figure at all and legitimately arrives without `instal`. Read
+each param independently; do not treat a missing one as an error or lay the page out
+assuming a fixed set.
 
-`currency` is the currency of both `instal` and `amount`. Neither carries a symbol or
-thousands separators — pair and format them on your side however the page reads best.
+Two more rules the order does not make obvious:
 
-A real example of the `plan` case:
+- **The annuity params follow the sheet's own display switches.** An agent can turn the 年金
+  or 聯合年金 block off on the worksheet. When they do, the block is not in the PDF, and we
+  do not send its params either — so what you render always matches what the reader is
+  holding.
+- `currency` is the currency of both `instal` and `amount`. Neither carries a symbol or
+  thousands separators — pair and format them on your side however the page reads best.
+
+A real 人壽 example, which fills the underwriting fields but no annuity:
 
 ```
-/pages/pdf/index?url=https%3A%2F%2Foss.hkbiaoge.com%2Fpdf%2Fu1%2FTester_USD_5000_1.pdf&name=Tester_USD_5000_1.pdf&source=plan&customerName=%E9%99%B3%E5%A4%A7%E6%96%87&planName=%E7%9B%88%E6%9C%88%E5%84%B2%E8%93%84%E8%A8%88%E5%8A%83&instal=5000&amount=100000&currency=USD&period=5
+/pages/pdf/index?url=https%3A%2F%2Foss.hkbiaoge.com%2Fpdf%2Fu1%2F%25E9%2599%25B3%25E5%25A4%25A7%25E6%2596%2587_USD_5000_1.pdf&name=%E9%99%B3%E5%A4%A7%E6%96%87_USD_5000_1.pdf&source=plan&customerName=%E9%99%B3%E5%A4%A7%E6%96%87&companyName=%E5%8F%8B%E8%A8%98&planName=%E7%9B%88%E6%9C%88%E4%BA%BA%E5%A3%BD%E8%A8%88%E5%8A%83&sex=%E7%94%B7&age=30&instal=5000&amount=100000&currency=USD&period=5&health=%E6%A8%99%E6%BA%96&area=%E4%BA%9E%E6%B4%B2
 ```
+
+And a 年金 GENERAL one — no `instal`, no 健康標準/地區, but both annuities:
+
+```
+/pages/pdf/index?url=https%3A%2F%2Foss.hkbiaoge.com%2Fpdf%2Fu1%2F%25E9%2599%25B3%25E5%25A4%25A7%25E6%2596%2587_USD_5000_1.pdf&name=%E9%99%B3%E5%A4%A7%E6%96%87_USD_5000_1.pdf&source=plan&customerName=%E9%99%B3%E5%A4%A7%E6%96%87&companyName=%E5%8F%8B%E8%A8%98&planName=%E7%9B%88%E6%9C%88%E5%B9%B4%E9%87%91%E8%A8%88%E5%8A%83&sex=%E7%94%B7&age=30&amount=100000&currency=USD&period=5&annuityAge=65&annuityOption=%E7%B5%82%E8%BA%AB%E5%B9%B4%E9%87%91&payoutPeriod=%E6%AF%8F%E6%9C%88&coupleAnnuityAge=60&coupleAnnuityOption=%E8%81%AF%E5%90%88%E5%B9%B4%E9%87%91
+```
+
+That second one is about as long as these get — roughly 750 characters, against 400 for the
+six-param version this replaces. **If a url ever arrives truncated, tell us** (§4.1): the fix
+is on our side and is a one-line change to how we pack these params.
 
 A 產品單頁 / 優惠推廣 belongs to no customer, so a `brochure` / `promotion` url is exactly
 what it was before these existed — the §1 example above is still byte-for-byte accurate.
@@ -310,6 +341,9 @@ or possible for that.
 - [ ] Verified with a PDF whose filename contains a space
 - [ ] A `source=plan` PDF renders its §1.1 params, and one arriving **without** `instal`
       renders nothing in its place rather than a blank label
+- [ ] Checked against **two** plan types with different param sets — a 人壽 sheet (健康標準 /
+      地區, no annuity) and a 年金 one (annuity, no `instal`) — so the layout does not assume
+      a fixed set
 - [ ] Back from the document returns to a still-logged-in web-view
 - [ ] Route confirmed to us — if it is **not** `/pages/pdf/index`, we change one constant
       (`PDF_VIEWER_PAGE` in `src/lib/pdf-viewer.ts`)
