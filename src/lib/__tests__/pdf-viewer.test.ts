@@ -4,6 +4,7 @@ import {
   openPdf,
   PDF_VIEWER_PAGE,
   pdfFileName,
+  type PdfMeta,
   pdfViewerUrl,
 } from "@/lib/pdf-viewer";
 import { wechat } from "@/lib/wechat";
@@ -79,21 +80,80 @@ describe("pdfViewerUrl", () => {
   });
 
   // The order is the order `pdfViewerUrl` writes them in, not the order the call site's
-  // object literal happens to use — the doc's example is a fixed string.
-  it("appends the sheet params in a fixed order", () => {
+  // object literal happens to use — the doc's example is a fixed string. Written back to
+  // front for exactly that reason.
+  //
+  // `satisfies Required<PdfMeta>` is what stops the type and the builder drifting: adding a
+  // field to `PdfMeta` without listing it here fails to compile, and listing it here without
+  // emitting it in `pdfViewerUrl` fails the assertion below.
+  it("appends every sheet param, in a fixed order", () => {
+    const meta = {
+      coupleAnnuityOption: "聯合",
+      coupleAnnuityAge: "60",
+      payoutPeriod: "每月",
+      annuityOption: "終身",
+      annuityAge: "65",
+      currentInterestRate: "3.5%",
+      dividend: "累積",
+      area: "亞洲",
+      health: "標準",
+      period: "5",
+      currency: "USD",
+      amount: "100000",
+      instal: "5000",
+      age: "30",
+      sex: "男",
+      planName: "PlanName",
+      companyName: "友記",
+      customerName: "Tester",
+    } satisfies Required<PdfMeta>;
+
     expect(
-      pdfViewerUrl("https://cdn.example.com/a.pdf", "n", "plan", {
-        period: "5",
-        currency: "USD",
-        amount: "100000",
-        instal: "5000",
-        planName: "PlanName",
-        customerName: "Tester",
-      }),
+      pdfViewerUrl("https://cdn.example.com/a.pdf", "n", "plan", meta),
     ).toBe(
       `${PDF_VIEWER_PAGE}?url=https%3A%2F%2Fcdn.example.com%2Fa.pdf&name=n&source=plan` +
-        "&customerName=Tester&planName=PlanName&instal=5000&amount=100000&currency=USD&period=5",
+        "&customerName=Tester&companyName=%E5%8F%8B%E8%A8%98&planName=PlanName" +
+        "&sex=%E7%94%B7&age=30&instal=5000&amount=100000&currency=USD&period=5" +
+        "&health=%E6%A8%99%E6%BA%96&area=%E4%BA%9E%E6%B4%B2&dividend=%E7%B4%AF%E7%A9%8D" +
+        "&currentInterestRate=3.5%25&annuityAge=65&annuityOption=%E7%B5%82%E8%BA%AB" +
+        "&payoutPeriod=%E6%AF%8F%E6%9C%88&coupleAnnuityAge=60" +
+        "&coupleAnnuityOption=%E8%81%AF%E5%90%88",
     );
+  });
+
+  // The same fixture, checked key by key rather than as one string: the assertion above
+  // proves the ORDER, this proves nothing is silently dropped on the way through.
+  it("emits every key of PdfMeta", () => {
+    const meta = {
+      customerName: "a",
+      companyName: "b",
+      planName: "c",
+      sex: "d",
+      age: "e",
+      instal: "f",
+      amount: "g",
+      currency: "h",
+      period: "i",
+      health: "j",
+      area: "k",
+      dividend: "l",
+      currentInterestRate: "m",
+      annuityAge: "n",
+      annuityOption: "o",
+      payoutPeriod: "p",
+      coupleAnnuityAge: "q",
+      coupleAnnuityOption: "r",
+    } satisfies Required<PdfMeta>;
+
+    const built = pdfViewerUrl(
+      "https://cdn.example.com/a.pdf",
+      "n",
+      "plan",
+      meta,
+    );
+    for (const [key, value] of Object.entries(meta)) {
+      expect(built).toContain(`&${key}=${value}`);
+    }
   });
 
   // An annuity GENERAL sheet never loads a cal, so it has no premium to send. The param is
