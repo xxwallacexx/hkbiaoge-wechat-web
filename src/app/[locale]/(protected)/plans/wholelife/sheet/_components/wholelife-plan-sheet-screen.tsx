@@ -58,6 +58,8 @@ export function WholelifePlanSheetScreen() {
       amount: cal?.amount,
       currency: sheetInfo?.currency,
       period: sheetInfo?.period,
+      health: sheetInfo?.health,
+      area: sheetInfo?.area,
     },
   });
 

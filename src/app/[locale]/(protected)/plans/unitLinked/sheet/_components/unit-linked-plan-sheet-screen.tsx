@@ -65,6 +65,7 @@ export function UnitLinkedPlanSheetScreen() {
       amount: cal?.amount,
       currency: sheetInfo?.currency,
       period: sheetInfo?.period,
+      currentInterestRate: sheetInfo?.currentInterestRate,
     },
   });
 

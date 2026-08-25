@@ -57,6 +57,7 @@ export function CouponPlanSheetScreen() {
       amount: cal?.amount,
       currency: sheetInfo?.currency,
       period: sheetInfo?.period,
+      dividend: sheetInfo?.dividend,
     },
   });
 
