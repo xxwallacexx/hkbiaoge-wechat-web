@@ -6,11 +6,15 @@ import { useMemo } from "react";
 
 import { useAuthToken } from "@/hooks/use-auth-token";
 import {
+  getUnitLinkedAnnuityInfo,
+  getUnitLinkedCoupleAnnuityInfo,
   getUnitLinkedPlanDetail,
   getUnitLinkedPlanParam,
+  getUnitLinkedPlanSheetArea,
   getUnitLinkedPlanSheetBasicInfo,
   getUnitLinkedPlanSheetCal,
   getUnitLinkedPlanSheetData,
+  getUnitLinkedPlanSheetHealth,
   getUnitLinkedPlanSheetInfo,
   getUnitLinkedPlanStatus,
 } from "@/lib/api/unit-linked-plans";
@@ -26,7 +30,9 @@ import {
  * from the `wv_token` cookie, gated on `useAuthToken`), and slices the grid into the single
  * 10-column table + the withdrawal view model. Unit-linked has one table (no premium/death
  * split); the type-B/D health/area + custom-parameter editors live in child components, which
- * invalidate `["unitLinkedPlanSheet", sheetId]`.
+ * invalidate `["unitLinkedPlanSheet", sheetId]`. This hook subscribes to the health/area and
+ * type-C annuity keys read-only, so the screen can describe the selections without owning
+ * them.
  */
 export function useUnitLinkedPlanSheet() {
   const searchParams = useSearchParams();
@@ -96,6 +102,37 @@ export function useUnitLinkedPlanSheet() {
         extraButtonCount: 0,
       };
 
+  // The four reads below already run inside the optional editors under these exact keys, so
+  // subscribing here shares their cache entries rather than adding a request — and the same
+  // `controls` flags that decide whether an editor is mounted gate them. Read at this level
+  // only so the screen can describe the PDF it generates; nothing on the page renders them.
+  //
+  // Unlike the 年金 sheet these have no display-type switch: an editor that exists is on the
+  // sheet, so what the API holds is what the PDF shows.
+  const { data: area } = useQuery({
+    queryKey: ["unitLinkedPlanSheet", sheetId, "area"],
+    enabled: enabled && controls.hasHealthArea,
+    queryFn: () => getUnitLinkedPlanSheetArea(sheetId),
+  });
+
+  const { data: health } = useQuery({
+    queryKey: ["unitLinkedPlanSheet", sheetId, "health"],
+    enabled: enabled && controls.hasHealthArea,
+    queryFn: () => getUnitLinkedPlanSheetHealth(sheetId),
+  });
+
+  const { data: annuityInfo } = useQuery({
+    queryKey: ["unitLinkedPlanSheet", sheetId, "annuityInfo"],
+    enabled: enabled && controls.hasAnnuity,
+    queryFn: () => getUnitLinkedAnnuityInfo(sheetId),
+  });
+
+  const { data: coupleAnnuityInfo } = useQuery({
+    queryKey: ["unitLinkedPlanSheet", sheetId, "coupleAnnuityInfo"],
+    enabled: enabled && controls.hasCoupleAnnuity,
+    queryFn: () => getUnitLinkedCoupleAnnuityInfo(sheetId),
+  });
+
   return {
     planId,
     sheetId,
@@ -116,5 +153,9 @@ export function useUnitLinkedPlanSheet() {
     hasAnnuity: controls.hasAnnuity,
     hasCoupleAnnuity: controls.hasCoupleAnnuity,
     extraButtonCount: controls.extraButtonCount,
+    area,
+    health,
+    annuityInfo,
+    coupleAnnuityInfo,
   };
 }

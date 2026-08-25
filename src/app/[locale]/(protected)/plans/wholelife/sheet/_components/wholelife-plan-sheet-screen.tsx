@@ -50,11 +50,16 @@ export function WholelifePlanSheetScreen() {
     // it can be tapped.
     meta: {
       customerName: basicInfo?.name,
+      companyName: planDetail?.insuranceCompanyDetail.name,
       planName: planDetail?.name,
+      sex: basicInfo?.sex,
+      age: basicInfo?.age?.toString(),
       instal: cal?.instal,
       amount: cal?.amount,
       currency: sheetInfo?.currency,
       period: sheetInfo?.period,
+      health: sheetInfo?.health,
+      area: sheetInfo?.area,
     },
   });
 

@@ -46,6 +46,10 @@ export function UnitLinkedPlanSheetScreen() {
     canEditCustomParameters,
     hasHealthArea,
     extraButtonCount,
+    area,
+    health,
+    annuityInfo,
+    coupleAnnuityInfo,
   } = useUnitLinkedPlanSheet();
 
   // Above the early returns below: hook order has to be identical on every render.
@@ -55,13 +59,27 @@ export function UnitLinkedPlanSheetScreen() {
     // Optional-chained for the same reason this call sits up here: the loading gate is below.
     // The download button only renders once the sheet does, so these are filled in by the time
     // it can be tapped.
+    //
+    // 地區 / 健康標準 are type-B/D and the annuity pair is type-C, so a given sheet fills one
+    // group or the other and never both — the hook returns undefined for whichever the plan
+    // has no editor for, and those params are simply absent.
     meta: {
       customerName: basicInfo?.name,
+      companyName: planDetail?.insuranceCompanyDetail.name,
       planName: planDetail?.name,
+      sex: basicInfo?.sex,
+      age: basicInfo?.age?.toString(),
       instal: cal?.instal,
       amount: cal?.amount,
       currency: sheetInfo?.currency,
       period: sheetInfo?.period,
+      health,
+      area,
+      currentInterestRate: sheetInfo?.currentInterestRate,
+      annuityAge: annuityInfo?.annuityAge?.toString(),
+      annuityOption: annuityInfo?.annuityOption,
+      coupleAnnuityAge: coupleAnnuityInfo?.coupleAnnuityAge?.toString(),
+      coupleAnnuityOption: coupleAnnuityInfo?.coupleAnnuityOption,
     },
   });
 
