@@ -60,7 +60,10 @@ export function AnnuityPlanSheetScreen() {
     // that is where `amount` comes from there.
     meta: {
       customerName: basicInfo?.name,
+      companyName: planDetail?.insuranceCompanyDetail.name,
       planName: planDetail?.name,
+      sex: basicInfo?.sex,
+      age: basicInfo?.age?.toString(),
       instal: cal?.instal,
       amount: cal?.amount ?? sheetInfo?.amount,
       currency: sheetInfo?.currency,

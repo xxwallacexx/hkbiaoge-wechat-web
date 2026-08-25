@@ -50,7 +50,10 @@ export function SavingPlanSheetScreen() {
     // it can be tapped. Saving keeps 年期 and 币种 on personalInfo rather than a sheetInfo.
     meta: {
       customerName: personalInfo?.name,
+      companyName: planDetail?.insuranceCompanyDetail.name,
       planName: planDetail?.name,
+      sex: personalInfo?.sex,
+      age: personalInfo?.age?.toString(),
       instal: cal?.instal,
       amount: cal?.amount,
       currency: personalInfo?.currency,
